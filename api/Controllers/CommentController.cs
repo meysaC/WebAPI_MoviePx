@@ -91,10 +91,9 @@ namespace api.Controllers
             if(!ModelState.IsValid ) return BadRequest(ModelState);
 
             var commentModel = await _commentRepo.DeleteAsync(id);
-            if(commentModel == null) return NotFound("Comment not exists.");
+            if(commentModel == null) return NotFound("Comment doesn't exists.");
 
             return NoContent();
-
         }
     }
 }

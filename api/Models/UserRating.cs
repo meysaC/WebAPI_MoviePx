@@ -17,7 +17,7 @@ namespace api.Models
         public AppUser AppUser { get; set; }
 
         public DateTime CreatedOn { get; set; } = DateTime.Now;
-        public DateTime UpdatedOn { get; set; } = DateTime.Now;
+        public DateTime UpdatedOn { get; set; } = DateTime.Now; //burda eşitlikle mi tanımlamalyız????????
 
     }
 }

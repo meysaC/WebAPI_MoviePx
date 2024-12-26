@@ -111,6 +111,7 @@ builder.Services.AddHttpClient<IOMDbService, OMDbService>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IAccountrepository, AccountRepository>();
 builder.Services.AddScoped<IRedisCacheService, RedisCacheService>(); //AddSingleton
+builder.Services.AddScoped<IUserRatingRepository, UserRatingRepository>(); 
 
 
 var app = builder.Build();
