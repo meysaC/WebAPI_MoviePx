@@ -1,31 +1,26 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using api.Data;
 using api.Dtos.Account;
-using api.Helpers;
 using api.Interfaces;
 using api.Mapper;
 using api.Models;
-using api.Service;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace api.Repository
 {
-    public class AccountRepository : IAccountrepository
+    public class UserRepository : IUserRepository
     {
         private readonly ApplicationDBContext _context;
         private readonly IOMDbService _omdbService;
-
-        public AccountRepository(ApplicationDBContext context, IOMDbService omdbService)
+        public UserRepository(ApplicationDBContext context, IOMDbService omdbService)
         {
             _context = context;
             _omdbService = omdbService;
         }
-
+ 
         public async Task<UserPreferance> AddFavoriteAsync(UserPreferance favoriteModel)
         {
             await _context.UserPreferances.AddAsync(favoriteModel);
@@ -83,5 +78,6 @@ namespace api.Repository
             return favoriteDto;
 
         }
+
     }
 }

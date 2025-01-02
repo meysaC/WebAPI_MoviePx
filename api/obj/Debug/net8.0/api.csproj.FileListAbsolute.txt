@@ -146,3 +146,4 @@ C:\Users\black\Desktop\MoviePx_API\api\obj\Debug\net8.0\ref\api.dll
 C:\Users\black\Desktop\MoviePx_API\api\bin\Debug\net8.0\Pipelines.Sockets.Unofficial.dll
 C:\Users\black\Desktop\MoviePx_API\api\bin\Debug\net8.0\StackExchange.Redis.dll
 C:\Users\black\Desktop\MoviePx_API\api\obj\Debug\net8.0\api.sourcelink.json
+C:\Users\black\Desktop\MoviePx_API\api\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Google.dll

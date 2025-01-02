@@ -31,6 +31,7 @@ namespace api.Service
             // test sırasında bu nesneyi taklit etmek daha zor, _config["JWT:SigningKey"] eksik veya hatalıysa, hata yalnızca TokenService oluşturulurken fark edilir
         
         }
+
         public string CreateToken(AppUser user)
         {
            var claims = new List<Claim>
@@ -53,6 +54,55 @@ namespace api.Service
             var token = tokenHandler.CreateJwtSecurityToken(tokenDescriptor);
             token.Header.Add("kid", "894626298589");
             return tokenHandler.WriteToken(token);
+        }
+
+        public string CreateStateToken() //state i token içerisine gömüyoruz (JWT içine gömülür ve imzalanır)
+        {
+            //return Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            var state = Guid.NewGuid().ToString();
+            var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature); 
+        
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] { new Claim("state", state) }),
+                Expires = DateTime.Now.AddDays(7),
+                SigningCredentials = creds,
+                Issuer = _config["JWT:Issuer"],
+                Audience = _config["JWT:Audience"]
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateJwtSecurityToken(tokenDescriptor);
+            token.Header.Add("kid", "894626298589");
+            return tokenHandler.WriteToken(token);
+        
+        }
+
+        public bool ValidateStateToken(string token) 
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();           
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = _key,
+                    ValidateIssuer = true,
+                    ValidIssuer = _config["JWT:Issuer"],
+                    ValidateAudience = true,
+                    ValidAudience = _config["JWT:Audience"],
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = (JwtSecurityToken)validatedToken;
+                var state = jwtToken.Claims.First(x => x.Type == "state").Value;
+
+                return !string.IsNullOrEmpty(state);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"State validation failed: {ex.Message}");
+                return false;
+            }        
         }
     }
 }

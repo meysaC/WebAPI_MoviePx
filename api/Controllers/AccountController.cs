@@ -24,15 +24,17 @@ namespace api.Controllers
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signinManager;
-        private readonly ITokenService _tokenService;
-        private readonly IAccountrepository _accountRepo;
+        private readonly ITokenService _tokenService;  
+        //private readonly IRedisCacheService _redisCacheService;
+        private readonly IOAuthService _oauthService;
 
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signinManager,ITokenService tokenService,  IAccountrepository accountRepo)//
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signinManager,ITokenService tokenService, IOAuthService oauthService)//, IRedisCacheService redisCacheService
         {
             _userManager = userManager;
             _signinManager = signinManager;
             _tokenService = tokenService;
-            _accountRepo = accountRepo;
+            //_redisCacheService = redisCacheService;
+            _oauthService = oauthService;
         }
 
         [HttpPost("login")]
@@ -55,7 +57,6 @@ namespace api.Controllers
                 }
             );
         }
-
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
@@ -88,8 +89,6 @@ namespace api.Controllers
                 {
                     return StatusCode(500, createdUser.Errors);
                 }
-
-
             }
             catch(Exception e)
             {
@@ -97,67 +96,75 @@ namespace api.Controllers
             }
         }
 
-        [HttpGet("favorites")]
-        public async Task<IActionResult> GetAllFavorite()  //ASLINDA BU TÜM KULLANICILARIN DİĞER KULLANICILARIN FAVORİLERİNE BAKMASI OLMALI O YÜZDEN APPUSER.ID DEĞİL DE KİME TIKLANDIYA ONUN İD Sİ GİTMELİ
+        [HttpGet("google_login")] //HttpPost
+        public async Task<IActionResult> GoogleLogin() 
         {
-            if(!ModelState.IsValid ) return BadRequest(ModelState);
-
-            var userName = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(userName);
-
-            var favorites = await _accountRepo.GetAllFavoritesAsync(appUser.Id);  
-            if(favorites == null) return NoContent();
-            return Ok(favorites); 
+            try
+            {
+                var loginUrl = _oauthService.GetGoogleLoginUrl(); //stateToken
+                return Redirect(loginUrl);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Google Login Error: {ex.Message}");
+                return StatusCode(500, "Google Login Error");
+            }
         }
         
-        [HttpGet("favorite/{id:int}")]
-        //[Route("{id:int}")]
-        [Authorize]
-        public async Task<IActionResult> GetFavoriteByFavoriteId([FromRoute] int id )
-        {
-            if(!ModelState.IsValid ) return BadRequest(ModelState);
+        [HttpGet("google-callback")] //HttpPost
+        public async Task<IActionResult> GoogleCallback(string code, string state) //state güvenlik sağlar(token saldırılara karşı(CSRF (Cross-Site Request Forgery)))
+                                                                                //code, Google'dan code kullanılarak bir erişim token (kullanıcı bilgileri  için gerekli yetki)
+        {            
+            try
+            {
+                if (!_tokenService.ValidateStateToken(state))
+                {
+                    return Unauthorized("Invalid state token");
+                }
 
-            var favorite = await _accountRepo.GetFavoriteByFavoriteIdAsync(id);  
-            if(favorite == null) return NotFound("Doesn't exists.");
+                var googleUser = await _oauthService.GetGoogleUserInfoAsync(code, state); 
+                if (googleUser == null) return StatusCode(500, "Google authentication failed.");
 
-            return Ok(favorite);  //favorite.ToFavoriteDto()
-        }
+                var appUser = await _userManager.FindByEmailAsync(googleUser.Email);
+                if (appUser == null)
+                {
+                    var normalizedEmail = googleUser.Email.ToUpper();
+                    var normalizedUserName = googleUser.Name.ToUpper();
+                    appUser = new AppUser
+                    {
+                        UserName = googleUser.Email,
+                        Email = googleUser.Email,
+                        // EmailConfirmed =googleUser.VerifiedEmail,
+                        // NormalizedUserName = normalizedUserName,
+                        // NormalizedEmail = normalizedEmail,
+                    };
 
+                    var createdUser = await _userManager.CreateAsync(appUser);
+                    if (!createdUser.Succeeded)
+                    {
+                        foreach (var error in createdUser.Errors)
+                        {
+                            Console.WriteLine($"Error Code: {error.Code}, Description: {error.Description}");
+                        }                    
+                        return StatusCode(500, createdUser.Errors);
+                    }
+                }
 
-        [HttpPost("favorite/{ImdbID}")]
-        //[Route("{ImdbID}")]
-        [Authorize]
-        public async Task<IActionResult> CreateFavorite([FromRoute] string ImdbID) //[FromQuery] string title, [FromBody] FavoriteQueryObject queryObject
-        {
-            var userName = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(userName);
+                var token = _tokenService.CreateToken(appUser);
 
-            var favoriteDto = new FavoriteDto();
-            
+                return Ok(new
+                {
+                    UserName = appUser.UserName,//Email,
+                    Email = appUser.Email,
+                    Token = token
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Google Callback Error: {ex.Message}");
+                return StatusCode(500, "An error occurred during Google callback.");
+            }
 
-            var favoriteModel = favoriteDto.ToUserPreferanceFromFavoriteDto();
-            favoriteModel.ImdbID = ImdbID;
-            favoriteModel.AppUserId = appUser.Id;
-
-            await _accountRepo.AddFavoriteAsync(favoriteModel);
-
-            favoriteDto =  await _accountRepo.GetFavoriteByFavoriteIdAsync(favoriteModel.Id);
-
-            //return Ok(); //result.UserPreferanceToFavoriteDto()
-            return CreatedAtAction(nameof(GetFavoriteByFavoriteId), new { id = favoriteModel.Id}, favoriteDto); //,   favoriteModel.ToFavoriteDto()            
-        }
-
-
-        [HttpDelete("favorite/{id}")]
-        [Authorize]
-        public async Task<IActionResult> DeleteFavorite([FromRoute] int id)
-        {
-            if(!ModelState.IsValid ) return BadRequest(ModelState);
-
-            var favoriteModel = await _accountRepo.DeleteFavoriteAsync(id);
-            if(favoriteModel == null) return NotFound("Not succsessfull request.");
-
-            return NoContent();
         }
     }
 }

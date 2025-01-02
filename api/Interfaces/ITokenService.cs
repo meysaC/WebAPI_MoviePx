@@ -9,5 +9,7 @@ namespace api.Interfaces
     public interface ITokenService
     {
         string CreateToken(AppUser user); 
+        string CreateStateToken(); //oauth için!!!!!!!!!!!1
+        bool ValidateStateToken(string token); //oauth için!!!!!!!!!!!1
     }
 }
