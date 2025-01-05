@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using api.Dtos.Account;
+using api.Dtos.User;
 using api.Extensions;
 using api.Interfaces;
 using api.Mapper;
@@ -40,7 +36,6 @@ namespace api.Controllers
         }
         
         [HttpGet("favorite/{id:int}")]
-        //[Route("{id:int}")]
         [Authorize]
         public async Task<IActionResult> GetFavoriteByFavoriteId([FromRoute] int id )
         {
@@ -82,6 +77,67 @@ namespace api.Controllers
 
             var favoriteModel = await _userRepo.DeleteFavoriteAsync(id);
             if(favoriteModel == null) return NotFound("Not succsessfull request.");
+
+            return NoContent();
+        }
+
+        [HttpGet("follow/{id:int}")]
+        [Authorize]
+        public async Task<IActionResult> GetFollowByFollowId([FromRoute] int id )
+        {
+            if(!ModelState.IsValid ) return BadRequest(ModelState);
+
+            var favorite = await _userRepo.GetFollowByFollowIdAsync(id);  
+            if(favorite == null) return NotFound("Doesn't exists.");
+
+            return Ok(favorite);
+        }
+
+        [HttpGet("followings")]
+        public async Task<IActionResult> GetAllFollowing() 
+        {
+            if(!ModelState.IsValid ) return BadRequest(ModelState);
+
+            var userName = User.GetUsername();
+            var appUser = await _userManager.FindByNameAsync(userName);
+
+            var follows = await _userRepo.GetAllFollowsAsync(appUser.Id);  
+            if(follows == null) return NoContent();
+            return Ok(follows); 
+        }
+
+        [HttpPost("follow/{username}")]
+        [Authorize]
+        public async Task<IActionResult> Follow([FromRoute] string username)
+        {
+            var userName = User.GetUsername();
+            var appUser = await _userManager.FindByNameAsync(userName);
+            var followUser = await _userManager.FindByNameAsync(username);
+
+
+            var followDto = new FollowDto();
+            var followModel = followDto.ToUserFollowFromFollowDto();
+            followModel.AppUserId = appUser.Id;
+            followModel.FollowingId = followUser.Id;
+
+            await _userRepo.FallowUserAsync(followModel);
+
+            followDto = await _userRepo.GetFollowByFollowIdAsync(followModel.Id);
+
+            return CreatedAtAction(nameof(GetFavoriteByFavoriteId), new { id = followModel.Id}, followDto); //,   favoriteModel.ToFavoriteDto()            
+        }
+
+        [HttpDelete("follow/{username}")]
+        [Authorize]
+        public async Task<IActionResult> UnFollow([FromRoute] string username)
+        {
+            if(!ModelState.IsValid ) return BadRequest(ModelState);
+
+            var userName = User.GetUsername();
+            var appUser = await _userManager.FindByNameAsync(userName);
+
+            var followModel = await _userRepo.UnFollowAsync(username, appUser.Id);
+            if(followModel == null) return NotFound("Not succsessfull request.");
 
             return NoContent();
         }

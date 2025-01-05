@@ -44,18 +44,11 @@ namespace api.Service
 
         public async Task<T> GetCacheAsync<T>(string key)
         {
-            // var data = await _cacheDb.StringGetAsync(key);
-            // if (!string.IsNullOrEmpty(data))
-            // {
-            //     return JsonConvert.DeserializeObject<T>(data);
-            // }
-            // return default;
-
             try
             {
                 var value = await _cacheDb.StringGetAsync(key); 
                 //if(!string.IsNullOrEmpty(value))    //bunun yerine alttaki gibi tek satır kodunda yaz!!  o zaman return default demene de gerek yok      
-                return value.IsNullOrEmpty ? default : JsonConvert.DeserializeObject<T>(value); //JsonSerializer.Deserialize<T>(value);
+                return value.IsNullOrEmpty ? default : JsonConvert.DeserializeObject<T>(value); 
 
                 //return default;
             }
@@ -68,9 +61,6 @@ namespace api.Service
 
         public async Task<bool> SetCacheAsync<T>(string key, T value) //, DateTimeOffset expirationTime
         {
-            // var serializedData = JsonConvert.SerializeObject(value);
-            // var expiry = TimeSpan.FromMinutes(expiryMinutes ?? _defaultExpiryMinutes);
-            // await _cacheDb.StringSetAsync(key, serializedData, expiry);
             try
             {
                 var expirationTime = DateTimeOffset.Now.AddMinutes(_defaultExpiryMinutes); 
@@ -89,17 +79,13 @@ namespace api.Service
 
         public async Task<object> RemoveCacheAsync(string key) //Task
         {
-            // await _cacheDb.KeyDeleteAsync(key);
             try
             {
                 //var _exists = _cacheDb.KeyExists(key);
                 return _cacheDb.KeyDeleteAsync(key); //if(_exists) 
-
-                //return false;
             }
             catch (Exception ex)
             {
-                
                 throw new Exception($"Redis RemoveCacheAsync Error: {ex.Message}", ex);
             }
         }

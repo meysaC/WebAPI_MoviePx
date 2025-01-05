@@ -12,7 +12,7 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20241205182314_Initial")]
+    [Migration("20250104155254_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -54,13 +54,13 @@ namespace api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "d24d758b-e6ed-4d2b-be5b-f382ae83c5f9",
+                            Id = "95e6b4f1-9773-497f-be0e-8429befa7c9e",
                             Name = "Admin",
                             NormalizedName = "ADMİN"
                         },
                         new
                         {
-                            Id = "0d03da33-8415-4666-9d10-0cd83fb9f204",
+                            Id = "a3d0c734-b337-49ff-9d04-9295e64fd7e0",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -299,6 +299,29 @@ namespace api.Migrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("api.Models.UserFollow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FallowingId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppUserId");
+
+                    b.ToTable("UserFollows");
+                });
+
             modelBuilder.Entity("api.Models.UserPreferance", b =>
                 {
                     b.Property<int>("Id")
@@ -412,6 +435,17 @@ namespace api.Migrations
                 });
 
             modelBuilder.Entity("api.Models.Comment", b =>
+                {
+                    b.HasOne("api.Models.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
+            modelBuilder.Entity("api.Models.UserFollow", b =>
                 {
                     b.HasOne("api.Models.AppUser", "AppUser")
                         .WithMany()

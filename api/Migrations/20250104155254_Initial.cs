@@ -199,6 +199,26 @@ namespace api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserFollows",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AppUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FallowingId = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserFollows", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserFollows_AspNetUsers_AppUserId",
+                        column: x => x.AppUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserPreferances",
                 columns: table => new
                 {
@@ -248,8 +268,8 @@ namespace api.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "0d03da33-8415-4666-9d10-0cd83fb9f204", null, "User", "USER" },
-                    { "d24d758b-e6ed-4d2b-be5b-f382ae83c5f9", null, "Admin", "ADMİN" }
+                    { "95e6b4f1-9773-497f-be0e-8429befa7c9e", null, "Admin", "ADMİN" },
+                    { "a3d0c734-b337-49ff-9d04-9295e64fd7e0", null, "User", "USER" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -297,6 +317,11 @@ namespace api.Migrations
                 column: "AppUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserFollows_AppUserId",
+                table: "UserFollows",
+                column: "AppUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserPreferances_AppUserId",
                 table: "UserPreferances",
                 column: "AppUserId");
@@ -330,6 +355,9 @@ namespace api.Migrations
 
             migrationBuilder.DropTable(
                 name: "Comments");
+
+            migrationBuilder.DropTable(
+                name: "UserFollows");
 
             migrationBuilder.DropTable(
                 name: "UserPreferances");

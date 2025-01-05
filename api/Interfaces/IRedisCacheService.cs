@@ -7,8 +7,8 @@ namespace api.Interfaces
 {
     public interface IRedisCacheService
     {
-        Task<T> GetCacheAsync<T>(string key); //Task<
+        Task<T> GetCacheAsync<T>(string key); 
         Task<bool> SetCacheAsync<T>(string key, T value); //, DateTimeOffset expirationTime  Task int? expiryMinutes = null 
-        Task<object> RemoveCacheAsync(string key); //Task
+        Task<object> RemoveCacheAsync(string key);
     }
 }

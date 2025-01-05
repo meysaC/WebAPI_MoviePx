@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using api.Dtos.Account;
-using api.Helpers;
+using api.Dtos.User;
 using api.Models;
 
 namespace api.Mapper
 {
-    public static class AccountMapper
+    public static class UserMapper
     {
-        public static FavoriteDto? UserPreferanceToFavoriteDto(this UserPreferance preferance) //
+        public static FavoriteDto? UserPreferanceToFavoriteDto(this UserPreferance preferance) 
         {
             return new FavoriteDto
             {
@@ -18,7 +17,7 @@ namespace api.Mapper
                 Favorite = "Favorite", 
                 Title = "",            
                 Director = "",         
-                imdbRating = "",       
+                imdbRating = ""       
             };
         }
         public static UserPreferance ToUserPreferanceFromFavoriteDto(this FavoriteDto favoriteDto)
@@ -40,5 +39,25 @@ namespace api.Mapper
         //         imdbRating = favorites.imdbRating
         //     }).ToList();
         // }
+
+        public static UserFollow? ToUserFollowFromFollowDto(this FollowDto followDto)
+        {
+            return new UserFollow
+            {
+                Id = followDto.Id
+            };
+        }
+        public static FollowDto?  UserFollowToFollowDto(this UserFollow followModel)
+        {
+            return new FollowDto
+            {
+                Id = followModel.Id,
+                userName = followModel.AppUser.UserName,
+                FollowingUserName = "",
+                Since = ""
+            };
+        }
+
+
     }
 }

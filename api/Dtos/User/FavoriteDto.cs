@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace api.Dtos.Account
+namespace api.Dtos.User
 {
     public class FavoriteDto
     {
@@ -12,6 +12,5 @@ namespace api.Dtos.Account
         public string? Director { get; set; }
         public string? imdbRating { get; set; }
         public string Favorite { get; set; } = "Favorite";
-
     }
 }
