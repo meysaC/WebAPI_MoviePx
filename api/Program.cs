@@ -92,7 +92,7 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
  options.Password.RequiredLength = 12;
 }).AddEntityFrameworkStores<ApplicationDBContext>();
 
-
+//FRONTEND İLE UĞRAŞIRKEN JWT ISSUER/AUDİENCE https://localhost:5246 DEN 5188 EÇEVİRDİM!!!!!!!
 builder.Services.AddAuthentication(options => {
    // options.DefaultAuthenticateScheme =  //kimlik doğrulama işlemi sırasında hangi şemanın kullanılacağını
    // options.DefaultChallengeScheme =    //kullanıcı doğrulama gereksinimi olduğunda (kullanıcı kimliği doğrulanmamışsa) hangi kimlik doğrulama şemasının kullanılacağı
@@ -182,21 +182,25 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseRouting(); //GOOGLE OAUTH İÇİN SONRADAN!!!!!!!!!!!!!!!!!!!!
-
+app.UseRouting(); //GOOGLE OAUTH İÇİN SONRADAN.
+//USECORS ROUTİNG VE AUTHORİZATİON ARASINDA ÇAĞRILMALI!!!!!
 app.UseCors(x => x
-        .AllowAnyOrigin()
-        //.WithOrigins("http://localhost:5188")
-        .AllowAnyMethod()
+        //.AllowAnyOrigin()
+        //.WithOrigins("https://localhost:3000") //"http://localhost:5188", //AllowCredentials kullandığında AllowAnyOrigin() ile çakışabilir. Bunun yerine sadece Nuxt URL'ini ekle.
+        .WithOrigins("https://localhost:3000", "https://10.240.99.206:3000") 
         .AllowAnyHeader()
-        //.AllowCredentials() // Eğer frontend ve backend farklı domainlerde çalışıyorsa `AllowCredentials` ile birlikte `AllowAnyOrigin` kullanılamaz.
+        .AllowAnyMethod()
+        .AllowCredentials() // Eğer frontend ve backend farklı domainlerde çalışıyorsa `AllowCredentials` ile birlikte `AllowAnyOrigin` kullanılamaz.
        //  .SetIsOriginAllowed(origin => true)
 );
-
-app.UseAuthentication();
 app.UseAuthorization();
+app.UseAuthentication();
 
-app.MapControllers();
+//frontendi bağlmaya çalışırken bunu kullandım??
+app.UseEndpoints(endpoints => {
+    endpoints.MapControllers();
+});
+//app.MapControllers();
 
 app.Run();
 
