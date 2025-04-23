@@ -15,7 +15,8 @@ namespace api.Models
         public DateTime CreatedOn { get; set; } = DateTime.Now;
         public DateTime UpdatedOn { get; set; } = DateTime.Now;
         
-        public string ImdbID { get; set; }        
+        //public string ImdbID { get; set; }   
+        public int MovieId { get; set; }
         public string AppUserId { get; set; } 
         public AppUser AppUser { get; set; }
     }

@@ -20,9 +20,10 @@ namespace api.Service
             _httpClient = httpClient;
             _tokenSer = tokenSer;
         }
-        public string GetGoogleLoginUrl()
+        //!!!! FRONTENDLE BAĞLADIKTAN SONRA STATE İ ACCOUNT CONTROLLER DA ÜRETTİRİP GÖNDERİYORUZ !!!!!
+        public string GetGoogleLoginUrl(string stateToken)
         {
-            var state = _tokenSer.CreateStateToken();
+            //var state = _tokenSer.CreateStateToken();  //
             var scope = Uri.EscapeDataString("email profile");
             
             var googleAuthUrl = $"https://accounts.google.com/o/oauth2/v2/auth?" +
@@ -30,7 +31,7 @@ namespace api.Service
                     $"redirect_uri={Uri.EscapeDataString(_config["GoogleOAuth:RedirectUri"])}&" + // Google oturum açma işlemi tamamlandığında yönlendirme yapılacak URL
                     $"response_type=code&" + //Yanıt türünü (code) belirler (web uyg code yazılır)
                     $"scope={scope}&" + //Hangi bilgilere erişileceği
-                    $"state={Uri.EscapeDataString(state)}";  //güvenlik için token 
+                    $"state={Uri.EscapeDataString(stateToken)}";  //güvenlik için token 
             return googleAuthUrl;
         }
 

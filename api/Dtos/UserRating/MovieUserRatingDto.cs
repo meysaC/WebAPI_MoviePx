@@ -7,7 +7,7 @@ namespace api.Dtos.UserRating
 {
     public class MovieUserRatingDto
     {
-        public string ImdbID { get; set; }
+        public int MovieId { get; set; }
         public double RatingRatio { get; set; }
     }
 }

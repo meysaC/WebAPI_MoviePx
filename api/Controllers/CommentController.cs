@@ -11,6 +11,7 @@ using api.Mapper;
 using api.Dtos.Comment;
 using api.Extensions;
 using Microsoft.AspNetCore.Identity;
+using api.Service;
 
 
 namespace api.Controllers
@@ -19,12 +20,14 @@ namespace api.Controllers
     [ApiController]
     public class CommentController : ControllerBase
     {
-        private readonly IOMDbService _omdbService;
+        //private readonly IOMDbService _omdbService;
+        private readonly ITmdbService _tmdbService;
         private readonly ICommentRepository _commentRepo;
         private readonly UserManager<AppUser> _userManager;
-        public CommentController(IOMDbService omdbService, ICommentRepository commentRepo, UserManager<AppUser> userManager)
+        public CommentController(ITmdbService tmdbService, ICommentRepository commentRepo, UserManager<AppUser> userManager)
         {
-            _omdbService = omdbService;
+            //_omdbService = omdbService;
+            _tmdbService = tmdbService; 
             _commentRepo = commentRepo;
             _userManager = userManager;
         }
@@ -53,16 +56,17 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        [Route("{ImdbID}")]
-        public async Task<IActionResult> Create([FromRoute] string ImdbID,[FromBody] CommentCreateDto commentDto) //ImdbID mi filmin title mı????????????????????
+        [Route("{MovieId}")] //MovieId
+        public async Task<IActionResult> Create([FromRoute] int MovieId,[FromBody] CommentCreateDto commentDto) //MovieId mi filmin title mı????????????????????
         {
-            var movie = await _omdbService.GetMovieByIdAsync(ImdbID);
+            //var movie = await _omdbService.GetMovieByIdAsync(MovieId);
+            var movie = await _tmdbService.GetMovieByIdAsync(MovieId);
             if(movie == null) return BadRequest("The movie doesn't exists.");
 
             var userName = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(userName);
 
-            var commentModel = commentDto.ToCommentFromCreateDto(ImdbID);
+            var commentModel = commentDto.ToCommentFromCreateDto(MovieId);
             commentModel.AppUserId = appUser.Id;
             await _commentRepo.CreateAsync(commentModel);
             return CreatedAtAction(nameof(GetByCommentId), new { id = commentModel.Id}, commentModel.ToCommentDto());
@@ -77,8 +81,6 @@ namespace api.Controllers
 
             var comment = await _commentRepo.UpdateAsync(id, commentDto.ToCommentFromUpdateDto());
             if(comment == null) return BadRequest("Comment not found.");
-
-
 
             return Ok(comment.ToCommentDto());
         }

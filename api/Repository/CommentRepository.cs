@@ -23,9 +23,9 @@ namespace api.Repository
         public async Task<List<Comment>> GetAllAsync(CommentQueryObject queryObject)
         {
            var comments = _context.Comments.Include(a => a.AppUser).AsQueryable();
-           if(!string.IsNullOrEmpty(queryObject.ImdbID) )
+           if(queryObject.MovieId.HasValue ) //!string.IsNullOrEmpty
            {
-                comments = comments.Where(s => s.ImdbID == queryObject.ImdbID);
+                comments = comments.Where(s => s.MovieId == queryObject.MovieId);
            }
            else if(!string.IsNullOrEmpty(queryObject.Title) )
            {

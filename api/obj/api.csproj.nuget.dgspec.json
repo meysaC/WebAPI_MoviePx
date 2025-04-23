@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\black\\Desktop\\MoviePx_API\\api\\api.csproj": {}
+    "C:\\Users\\black\\Desktop\\Toplu\\GeriKalan\\MoviePx_API\\api\\api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\black\\Desktop\\MoviePx_API\\api\\api.csproj": {
+    "C:\\Users\\black\\Desktop\\Toplu\\GeriKalan\\MoviePx_API\\api\\api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\black\\Desktop\\MoviePx_API\\api\\api.csproj",
+        "projectUniqueName": "C:\\Users\\black\\Desktop\\Toplu\\GeriKalan\\MoviePx_API\\api\\api.csproj",
         "projectName": "api",
-        "projectPath": "C:\\Users\\black\\Desktop\\MoviePx_API\\api\\api.csproj",
+        "projectPath": "C:\\Users\\black\\Desktop\\Toplu\\GeriKalan\\MoviePx_API\\api\\api.csproj",
         "packagesPath": "C:\\Users\\black\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\black\\Desktop\\MoviePx_API\\api\\obj\\",
+        "outputPath": "C:\\Users\\black\\Desktop\\Toplu\\GeriKalan\\MoviePx_API\\api\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using api.Dtos.Account;
 using api.Extensions;
@@ -9,6 +10,9 @@ using api.Interfaces;
 using api.Mapper;
 using api.Models;
 using Azure.Identity;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -51,6 +55,7 @@ namespace api.Controllers
             return Ok(
                 new NewUserDto
                 {
+                    id = user.Id,
                     UserName = user.UserName ?? "",
                     Email = user.Email ?? "",
                     Token = _tokenService.CreateToken(user)
@@ -78,6 +83,7 @@ namespace api.Controllers
                     if(roleResult.Succeeded) return Ok(
                         new NewUserDto
                         {
+                            id = appUser.Id,
                             UserName = appUser.UserName ?? "",
                             Email = appUser.Email ?? "",
                             Token = _tokenService.CreateToken(appUser)
@@ -96,13 +102,15 @@ namespace api.Controllers
             }
         }
 
-        [HttpGet("google_login")] //HttpPost
-        public async Task<IActionResult> GoogleLogin() 
+        [HttpGet("google_login_url")] //HttpPost
+        public async Task<IActionResult> GoogleLoginUrl() 
         {
             try
             {
-                var loginUrl = _oauthService.GetGoogleLoginUrl(); //stateToken
-                return Redirect(loginUrl);
+                var stateToken = _tokenService.CreateStateToken();
+                var loginUrl = _oauthService.GetGoogleLoginUrl(stateToken); //stateToken
+                //return Redirect(loginUrl);
+                return Ok(new { url = loginUrl, stateToken = stateToken });  //Google Login URL'sini frontend'e döndürecek. Frontend bu URL'ye yönlendirerek Google Login işlemini başlatacak.
             }
             catch (Exception ex)
             {
@@ -110,31 +118,36 @@ namespace api.Controllers
                 return StatusCode(500, "Google Login Error");
             }
         }
-        
-        [HttpGet("google-callback")] //HttpPost
+        [HttpGet("google-callback")]
         public async Task<IActionResult> GoogleCallback(string code, string state) //state güvenlik sağlar(token saldırılara karşı(CSRF (Cross-Site Request Forgery)))
                                                                                 //code, Google'dan code kullanılarak bir erişim token (kullanıcı bilgileri  için gerekli yetki)
         {            
             try
-            {
-                if (!_tokenService.ValidateStateToken(state))
-                {
-                    return Unauthorized("Invalid state token");
-                }
-
+            {                
+                //GoogleOptions kullanıyorsan, state kontrolü Google middleware tarafından otomatik yapılır. Kendi ValidateStateToken metodunu çağırman çakışmaya veya double validation’a neden olabilir.
+                // if (!_tokenService.ValidateStateToken(state))
+                // {
+                //     return Unauthorized("Invalid state token");
+                // }
                 var googleUser = await _oauthService.GetGoogleUserInfoAsync(code, state); 
                 if (googleUser == null) return StatusCode(500, "Google authentication failed.");
+
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //Bazı Identity konfigürasyonlarında FindByEmailAsync() case-sensitive çalışabilir. NormalizedEmail ile sorgulamak, email doğrulama hatalarını engeller.
+                // var normalizedEmail = googleUser.Email.ToUpper();
+                // var appUser = await _userManager.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
 
                 var appUser = await _userManager.FindByEmailAsync(googleUser.Email);
                 if (appUser == null)
                 {
-                    var normalizedEmail = googleUser.Email.ToUpper();
-                    var normalizedUserName = googleUser.Name.ToUpper();
+                    // var normalizedEmail = googleUser.Email.ToUpper();
+                    // var normalizedUserName = googleUser.Name.ToUpper();
                     appUser = new AppUser
                     {
                         UserName = googleUser.Email,
                         Email = googleUser.Email,
-                        // EmailConfirmed =googleUser.VerifiedEmail,
+                        
+                        // EmailConfirmed = true, //// Google doğrulama yaptığı için true olabilir                        
                         // NormalizedUserName = normalizedUserName,
                         // NormalizedEmail = normalizedEmail,
                     };
@@ -151,13 +164,15 @@ namespace api.Controllers
                 }
 
                 var token = _tokenService.CreateToken(appUser);
-
                 return Ok(new
                 {
+                    id = appUser.Id,
                     UserName = appUser.UserName,//Email,
                     Email = appUser.Email,
                     Token = token
                 });
+                // return Ok(appUser);
+
             }
             catch (Exception ex)
             {

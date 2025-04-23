@@ -134,32 +134,51 @@ builder.Services.AddAuthentication(options => {
     options.ClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
     options.CallbackPath = "/google-callback"; // Google geri dönüş URL'si
     
-    //options.SaveTokens = true; // Token'ları saklayarak erişim kolaylığı sağlar. 
+    // FRONT END İLE UYUMLU OLMASI İÇİN !!!!!!!!!!!!!!!!!!!!!!!!!!1
+    //options.SaveTokens = true; // Token'ları saklayarak(access_token'ı claims olarak saklar) erişim kolaylığı sağlar.
+    
     //JWT kullanıyorsanız, SaveTokens ile token'lar saklanmaz çünkü JWT, stateless bir yapıdır ve genellikle token'lar istemci tarafında saklanır.
     //Google OAuth2 işlemi sonucunda elde edilen token'lar(accessToken  ve refreshToken), sunucuda saklanmaz (kullanıcının oturum bilgisi (claims) ile birlikte saklar)
     //authentication cookie veya session state içerisinde saklanır 
     //(HttpContext ile ulaşım örneği-> var accessToken = await HttpContext.GetTokenAsync("access_token");)
 
     // Google'a yönlendirme yapılmadan önce state veya başka bir işlem
-    options.Events.OnRedirectToAuthorizationEndpoint = context =>
-    {
-        Console.WriteLine($"Redirecting to: {context.RedirectUri}");
-        return Task.CompletedTask;
-    };
+    // FRONT END İLE UYUMLU OLMASI İÇİN !!!!!!!!!!!!!!!!!!!!!!!!!!1
     options.Events.OnCreatingTicket = context =>
     {
         Console.WriteLine("Google ticket created.");
         return Task.CompletedTask;
     };
+
+    options.Events.OnRemoteFailure = context =>
+    {
+        Console.WriteLine($"Remote error: {context.Failure?.Message}");
+        context.HandleResponse();
+        context.Response.Redirect("/login-failed");
+        return Task.CompletedTask;
+    };
+    // options.Events.OnRedirectToAuthorizationEndpoint = context =>
+    // {
+    //     Console.WriteLine($"Redirecting to: {context.RedirectUri}");
+    //     return Task.CompletedTask;
+    // };
+    // options.Events.OnCreatingTicket = context =>
+    // {
+    //     Console.WriteLine("Google ticket created.");
+    //     return Task.CompletedTask;
+    // };
+
 });
 
 //DI ile SymmetricSecurityKey sağlıyoruz (yalnızca bir kez oluşturulur ve uygulama boyunca tekrar kullanılabilir)
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]));
 builder.Services.AddSingleton(signingKey);
 
+//builder.Services.AddScoped<IOMDbService, OMDbService>();
+//builder.Services.AddHttpClient<IOMDbService, OMDbService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IOMDbService, OMDbService>();
-builder.Services.AddHttpClient<IOMDbService, OMDbService>();
+builder.Services.AddScoped<ITmdbService, TmdbService>();
+builder.Services.AddHttpClient<ITmdbService, TmdbService>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRedisCacheService, RedisCacheService>(); //AddSingleton
@@ -187,7 +206,7 @@ app.UseRouting(); //GOOGLE OAUTH İÇİN SONRADAN.
 app.UseCors(x => x
         //.AllowAnyOrigin()
         //.WithOrigins("https://localhost:3000") //"http://localhost:5188", //AllowCredentials kullandığında AllowAnyOrigin() ile çakışabilir. Bunun yerine sadece Nuxt URL'ini ekle.
-        .WithOrigins("https://localhost:3000", "https://10.240.99.206:3000") 
+        .WithOrigins("https://localhost:3000") //, "https://10.240.99.206:3000"
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials() // Eğer frontend ve backend farklı domainlerde çalışıyorsa `AllowCredentials` ile birlikte `AllowAnyOrigin` kullanılamaz.
