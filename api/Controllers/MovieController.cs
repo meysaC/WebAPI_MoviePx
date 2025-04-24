@@ -13,16 +13,19 @@ namespace api.Controllers
     public class MovieController : ControllerBase
     {
         private readonly IOMDbService _oMDbService;
+        private readonly ITmdbService _tmdbService;
 
-        public MovieController(IOMDbService oMDbService)
+        public MovieController(ITmdbService tmdbService) //IOMDbService oMDbService
         {
-            _oMDbService = oMDbService;
+            //_oMDbService = oMDbService;
+            _tmdbService = tmdbService;
         }
 
-        [HttpGet("{imdbId}")]
-        public async Task<IActionResult> GetMovieDetailsById(string imdbId)
+        [HttpGet("{MovieId}")] 
+        public async Task<IActionResult> GetMovieDetailsById(int MovieId)
         {
-            var movie = await _oMDbService.GetMovieByIdAsync(imdbId);
+            //var movie = await _oMDbService.GetMovieByIdAsync(MovieId);
+            var movie = await _tmdbService.GetMovieByIdAsync(MovieId);
             if (movie == null) return NotFound();
             return Ok(movie);
         }
@@ -30,9 +33,10 @@ namespace api.Controllers
         [HttpGet("search_by_title")]
         public async Task<IActionResult> SearchMoviesByTitle([FromQuery] string title, [FromQuery] int page = 1) //
         {
-            var results = await _oMDbService.SearchMoviesByTitleAsync(title, page); //title
+            var results = await _tmdbService.SearchMoviesByTitleAsync(title, page); //title
             if (results == null) return NotFound();
             return Ok(results);
-        }        
+        }
+                
     }
 }

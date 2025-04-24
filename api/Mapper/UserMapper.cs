@@ -16,8 +16,8 @@ namespace api.Mapper
                 Id = preferance.Id,
                 Favorite = "Favorite", 
                 Title = "",            
-                Director = "",         
-                imdbRating = ""       
+                // Director = "",         
+                // imdbRating = ""       
             };
         }
         public static UserPreferance ToUserPreferanceFromFavoriteDto(this FavoriteDto favoriteDto)

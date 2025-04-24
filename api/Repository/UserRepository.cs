@@ -11,13 +11,15 @@ namespace api.Repository
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationDBContext _context;
-        private readonly IOMDbService _omdbService;
+        //private readonly IOMDbService _omdbService;
+        private readonly ITmdbService _tmdbService;
         private readonly UserManager<AppUser> _userManager;
 
-        public UserRepository(ApplicationDBContext context, IOMDbService omdbService,  UserManager<AppUser> userManager)
+        public UserRepository(ApplicationDBContext context, ITmdbService tmdbService,  UserManager<AppUser> userManager)
         {
             _context = context;
-            _omdbService = omdbService;
+            //_omdbService = omdbService;
+            _tmdbService =tmdbService;
             _userManager = userManager;
         }
  
@@ -45,16 +47,17 @@ namespace api.Repository
                                             .ToListAsync();
             if(favorites == null) return null;                                                        
             var favoritesDto = favorites.Select(a => a.UserPreferanceToFavoriteDto()).ToList();
-            var movieImbdIds = favorites.Select(a => a.ImdbID).ToList();
+            var movieIds = favorites.Select(a => a.MovieId).ToList();
             
             for (int i = 0; i < favoritesDto.Count; i++)
             {
-                var movie = await _omdbService.GetMovieByIdAsync(movieImbdIds[i]);       
+                //var movie = await _omdbService.GetMovieByIdAsync(movieMovieIds[i]);       
+                var movie = await _tmdbService.GetMovieByIdAsync(movieIds[i]);       
                 if (movie != null)
                 {
                     favoritesDto[i].Title = movie.Title;
-                    favoritesDto[i].Director = movie.Director;
-                    favoritesDto[i].imdbRating = movie.imdbRating;
+                    // favoritesDto[i].Director = movie.Director;
+                    // favoritesDto[i].imdbRating = movie.imdbRating;
                 }
             }            
             return favoritesDto;
@@ -68,11 +71,12 @@ namespace api.Repository
             var favoriteDto = new FavoriteDto();
             favoriteDto = favorite.UserPreferanceToFavoriteDto();
 
-            var movie = await _omdbService.GetMovieByIdAsync(favorite.ImdbID);          
+            //var movie = await _omdbService.GetMovieByIdAsync(favorite.ImdbID);          
+            var movie = await _tmdbService.GetMovieByIdAsync(favorite.MovieId);          
             {
                 favoriteDto.Title = movie.Title;
-                favoriteDto.Director = movie.Director;
-                favoriteDto.imdbRating = movie.imdbRating;
+                // favoriteDto.Director = movie.Director;
+                // favoriteDto.imdbRating = movie.imdbRating;
             }
 
             return favoriteDto;

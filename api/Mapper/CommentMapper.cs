@@ -27,13 +27,13 @@ namespace api.Mapper
             };
         }
 
-        public static Comment ToCommentFromCreateDto(this CommentCreateDto createCommentDto, string ImdbID)
+        public static Comment ToCommentFromCreateDto(this CommentCreateDto createCommentDto, int MovieId)
         {
             return new Comment
             {
                 Title = createCommentDto.Title,
                 Content = createCommentDto.Content,
-                ImdbID = ImdbID
+                MovieId = MovieId
             };
         }
 

@@ -9,7 +9,7 @@ namespace api.Dtos.UserRating
     {
         public int Id { get; set; }       
         public double Rate { get; set; }
-        public string ImdbID { get; set; }
+        public int MovieId { get; set; }
         public string CreatedBy { get; set; } = string.Empty;
     }
 }

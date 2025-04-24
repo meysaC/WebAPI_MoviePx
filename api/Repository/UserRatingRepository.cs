@@ -19,19 +19,19 @@ namespace api.Repository
             _context = context;
         }
 
-        public async Task<List<UserRating>?> GetAllRatingsByImdbIDAsync(string imdbID)
+        public async Task<List<UserRating>?> GetAllRatingsByMovieIdAsync(int MovieId)
         {
             var ratings = await _context.UserRatings
                                             .Include(a => a.AppUser)
-                                            .Where(a => a.ImdbID == imdbID)
+                                            .Where(a => a.MovieId == MovieId)
                                             .ToListAsync();
                                             return ratings;                                                      
         }
   
-        public async Task<double> GetRatingRatioByImdbIDAsync(string imdbID)
+        public async Task<double> GetRatingRatioByMovieIdAsync(int MovieId)
         {
             var ratings =  await _context.UserRatings
-                                            .Where(a => a.ImdbID == imdbID)
+                                            .Where(a => a.MovieId == MovieId)
                                             .ToListAsync();
 
             var just_ratings = ratings.Select(a => a.Rate).ToList();
@@ -44,6 +44,32 @@ namespace api.Repository
 
             return total / just_ratings.Count();
         }
+        
+        // public async Task<List<UserRating>?> GetAllRatingsByImdbIDAsync(string imdbID)
+        // {
+        //     var ratings = await _context.UserRatings
+        //                                     .Include(a => a.AppUser)
+        //                                     .Where(a => a.ImdbID == imdbID)
+        //                                     .ToListAsync();
+        //                                     return ratings;                                                      
+        // }
+  
+        // public async Task<double> GetRatingRatioByImdbIDAsync(string imdbID)
+        // {
+        //     var ratings =  await _context.UserRatings
+        //                                     .Where(a => a.ImdbID == imdbID)
+        //                                     .ToListAsync();
+
+        //     var just_ratings = ratings.Select(a => a.Rate).ToList();
+            
+        //     double total = 0;
+        //     foreach(double rate in just_ratings)
+        //     {
+        //         total += rate;
+        //     }
+
+        //     return total / just_ratings.Count();
+        // }
 
         public async Task<List<UserRating>?> GetAllRatingsForUserAsync(string userId)
         {

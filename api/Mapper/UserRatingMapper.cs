@@ -16,7 +16,7 @@ namespace api.Mapper
             {
                 Id = ratingModel.Id,
                 Rate = ratingModel.Rate,
-                ImdbID = ratingModel.ImdbID,
+                MovieId = ratingModel.MovieId,
                 CreatedBy = ratingModel.AppUser.UserName
             };
         }
@@ -32,11 +32,11 @@ namespace api.Mapper
         //     };
         // }
 
-        public static MovieUserRatingDto? UserRatingToMovieRatingRatioDto(string imdbID, double ratio) //this UserRating ratingModel
+        public static MovieUserRatingDto? UserRatingToMovieRatingRatioDto(int MovieId, double ratio) //this UserRating ratingModel
         {
             return new MovieUserRatingDto
             {
-                ImdbID = imdbID,
+                MovieId = MovieId,
                 RatingRatio = ratio
             };
         }
@@ -45,7 +45,7 @@ namespace api.Mapper
         {
             return new UserRating
             {
-                ImdbID = ratingDto.ImdbID,
+                MovieId = ratingDto.MovieId,
                 Rate = ratingDto.Rate
             };
         }

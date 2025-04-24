@@ -8,7 +8,7 @@ namespace api.Interfaces
 {
     public interface IOAuthService
     {
-        string GetGoogleLoginUrl();
+        string GetGoogleLoginUrl(string state);
         Task<GoogleUserInfo?> GetGoogleUserInfoAsync(string code, string state); //
     }
 }

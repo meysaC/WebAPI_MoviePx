@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using api.Dtos.User;
 using api.Extensions;
 using api.Interfaces;
@@ -21,7 +22,19 @@ namespace api.Controllers
             _userManager = userManager;
             _userRepo = userRepo;
         }
-        
+
+        [HttpGet("get_user")]
+        public async Task<IActionResult> GetUser(string id)
+        {
+            var userName = User.FindFirst(JwtRegisteredClaimNames.GivenName)?.Value; // veya "given_name"
+            if (userName == null) return Unauthorized("Token geçersiz.");
+
+            var appUser = await _userManager.FindByNameAsync(userName);
+            if (appUser == null) return NotFound("Kullanıcı bulunamadı.");
+
+            return Ok(appUser);
+        }
+
         [HttpGet("favorites")]
         public async Task<IActionResult> GetAllFavorite()  //ASLINDA BU TÜM KULLANICILARIN DİĞER KULLANICILARIN FAVORİLERİNE BAKMASI OLMALI O YÜZDEN APPUSER.ID DEĞİL DE KİME TIKLANDIYA ONUN İD Sİ GİTMELİ
         {
@@ -47,10 +60,10 @@ namespace api.Controllers
             return Ok(favorite);  //favorite.ToFavoriteDto()
         }
 
-        [HttpPost("favorite/{ImdbID}")]
+        [HttpPost("favorite/{MovieId}")] //ImdbID
         //[Route("{ImdbID}")]
         [Authorize]
-        public async Task<IActionResult> CreateFavorite([FromRoute] string ImdbID) //[FromQuery] string title, [FromBody] FavoriteQueryObject queryObject
+        public async Task<IActionResult> CreateFavorite([FromRoute] int MovieId) //[FromQuery] string title, [FromBody] FavoriteQueryObject queryObject
         {
             var userName = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(userName);
@@ -58,7 +71,7 @@ namespace api.Controllers
             var favoriteDto = new FavoriteDto();            
 
             var favoriteModel = favoriteDto.ToUserPreferanceFromFavoriteDto();
-            favoriteModel.ImdbID = ImdbID;
+            favoriteModel.MovieId = MovieId;
             favoriteModel.AppUserId = appUser.Id;
 
             await _userRepo.AddFavoriteAsync(favoriteModel);
@@ -127,7 +140,7 @@ namespace api.Controllers
             return CreatedAtAction(nameof(GetFavoriteByFavoriteId), new { id = followModel.Id}, followDto); //,   favoriteModel.ToFavoriteDto()            
         }
 
-        [HttpDelete("follow/{username}")]
+        [HttpDelete("unfollow/{username}")]
         [Authorize]
         public async Task<IActionResult> UnFollow([FromRoute] string username)
         {

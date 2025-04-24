@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace api.Models
 {
-    public class MovieDetail //json to pocp ile newsoftjson deserileze uy hale getirdik 
+    public class MovieDetail //json to poco ile newsoftjson deserileze uy hale getirdik 
     {
         public string Title { get; set; }
         public string Year { get; set; }
@@ -32,6 +32,5 @@ namespace api.Models
         public string Production { get; set; }
         public string Website { get; set; }
         public string Response { get; set; }
-
     }
 }

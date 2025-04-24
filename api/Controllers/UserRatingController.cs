@@ -49,26 +49,26 @@ namespace api.Controllers
             return Ok(ratingsDto);
         }
 
-        [HttpGet("ratings_for_movie/{imdbID}")]
-        //[Route("{imdbID}")]
-        public async Task<IActionResult> GetAllRatingsByImdbID([FromRoute] string imdbID)
+        [HttpGet("ratings_for_movie/{MovieId}")]
+        //[Route("{MovieId}")]
+        public async Task<IActionResult> GetAllRatingsByMovieId([FromRoute] int MovieId)
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
 
-            var ratings = await _ratingRepo.GetAllRatingsByImdbIDAsync(imdbID);
+            var ratings = await _ratingRepo.GetAllRatingsByMovieIdAsync(MovieId);
 
             var ratingsDto = ratings.Select(a => a.UserRatingToUserRatingDto()).ToList();
             return Ok(ratingsDto);
         }
 
-        [HttpGet("rating_ratio_for_movie/{imdbID}")]
-        //[Route("{imdbID}")]
-        public async Task<IActionResult> GetRatingRatioByImdbID([FromRoute] string imdbID)
+        [HttpGet("rating_ratio_for_movie/{MovieId}")]
+        //[Route("{MovieId}")]
+        public async Task<IActionResult> GetRatingRatioByMovieId([FromRoute] int MovieId)
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
 
-            var ratio = await _ratingRepo.GetRatingRatioByImdbIDAsync(imdbID);
-            var result = api.Mapper.UserRatingMapper.UserRatingToMovieRatingRatioDto(imdbID, ratio);
+            var ratio = await _ratingRepo.GetRatingRatioByMovieIdAsync(MovieId);
+            var result = api.Mapper.UserRatingMapper.UserRatingToMovieRatingRatioDto(MovieId, ratio);
             return Ok(result);
         }
 
