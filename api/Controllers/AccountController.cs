@@ -55,9 +55,9 @@ namespace api.Controllers
             return Ok(
                 new NewUserDto
                 {
-                    id = user.Id,
-                    UserName = user.UserName ?? "",
-                    Email = user.Email ?? "",
+                    // id = user.Id,
+                    // UserName = user.UserName ?? "",
+                    // Email = user.Email ?? "",
                     Token = _tokenService.CreateToken(user)
                 }
             );
@@ -146,19 +146,16 @@ namespace api.Controllers
                     {
                         UserName = googleUser.Email,
                         Email = googleUser.Email,
-                        
                         // EmailConfirmed = true, //// Google doğrulama yaptığı için true olabilir                        
-                        // NormalizedUserName = normalizedUserName,
-                        // NormalizedEmail = normalizedEmail,
                     };
 
                     var createdUser = await _userManager.CreateAsync(appUser);
                     if (!createdUser.Succeeded)
                     {
-                        foreach (var error in createdUser.Errors)
-                        {
-                            Console.WriteLine($"Error Code: {error.Code}, Description: {error.Description}");
-                        }                    
+                        // foreach (var error in createdUser.Errors)
+                        // {
+                        //     Console.WriteLine($"Error Code: {error.Code}, Description: {error.Description}");
+                        // }                    
                         return StatusCode(500, createdUser.Errors);
                     }
                 }
@@ -166,13 +163,11 @@ namespace api.Controllers
                 var token = _tokenService.CreateToken(appUser);
                 return Ok(new
                 {
-                    id = appUser.Id,
-                    UserName = appUser.UserName,//Email,
-                    Email = appUser.Email,
+                    // id = appUser.Id,
+                    // UserName = appUser.UserName,//Email,
+                    // Email = appUser.Email,
                     Token = token
                 });
-                // return Ok(appUser);
-
             }
             catch (Exception ex)
             {

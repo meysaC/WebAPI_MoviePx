@@ -101,7 +101,8 @@ builder.Services.AddAuthentication(options => {
    // options.DefaultSignInScheme =    //kullanıcının giriş yaptıktan sonra hangi kimlik doğrulama şemasının kullanılacağını(genellikle cookie authentication kullanıldığında)
    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; //hem Google OAuth hem de JWT gibi birden fazla kimlik doğrulama yöntemi kullanıyorsanız, bu durumda şemaları doğru bir şekilde yönlendirebilmek için DefaultAuthenticateScheme ve DefaultChallengeScheme kullanmak önemlidir
    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-}).AddJwtBearer(options => {
+})
+.AddJwtBearer(options => {
    options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -154,7 +155,7 @@ builder.Services.AddAuthentication(options => {
     {
         Console.WriteLine($"Remote error: {context.Failure?.Message}");
         context.HandleResponse();
-        context.Response.Redirect("/login-failed");
+        context.Response.Redirect("/login");
         return Task.CompletedTask;
     };
     // options.Events.OnRedirectToAuthorizationEndpoint = context =>

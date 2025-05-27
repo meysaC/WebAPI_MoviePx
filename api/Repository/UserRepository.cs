@@ -23,6 +23,13 @@ namespace api.Repository
             _userManager = userManager;
         }
  
+        public async Task<AppUser> GetUserAsync(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if(user == null) return null;
+            return user;
+        }
+
         public async Task<UserPreferance> AddFavoriteAsync(UserPreferance favoriteModel)
         {
             await _context.UserPreferances.AddAsync(favoriteModel);
@@ -89,7 +96,7 @@ namespace api.Repository
             return followModel;
         }
 
-        public async Task<FollowDto> GetFollowByFollowIdAsync(int id)
+        public async Task<FollowDto> GetFollowByFollowIdAsync(int id) //bu id kullanıcı id değil 
         {
             var follow = await _context.UserFollows.Include(a => a.AppUser).FirstOrDefaultAsync(a => a.Id == id);
             if(follow == null) return null;
@@ -169,5 +176,6 @@ namespace api.Repository
             }
             return result;
         }
+
     }
 }
