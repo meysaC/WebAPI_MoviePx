@@ -36,8 +36,10 @@ namespace api.Service
         {
            var claims = new List<Claim>
            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.GivenName, user.UserName)
+                new Claim(JwtRegisteredClaimNames.GivenName, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // token replay saldırılarına karşı
            };
 
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);

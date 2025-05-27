@@ -26,13 +26,10 @@ namespace api.Controllers
         [HttpGet("get_user")]
         public async Task<IActionResult> GetUser(string id)
         {
-            var userName = User.FindFirst(JwtRegisteredClaimNames.GivenName)?.Value; // veya "given_name"
-            if (userName == null) return Unauthorized("Token geçersiz.");
+            var user = await _userRepo.GetUserAsync(id);
+           if (user == null) return NotFound("The user doesn't exist.");
 
-            var appUser = await _userManager.FindByNameAsync(userName);
-            if (appUser == null) return NotFound("Kullanıcı bulunamadı.");
-
-            return Ok(appUser);
+            return Ok(user);
         }
 
         [HttpGet("favorites")]

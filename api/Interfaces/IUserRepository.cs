@@ -9,6 +9,7 @@ namespace api.Interfaces
 {
     public interface IUserRepository
     {
+        Task<AppUser> GetUserAsync(string id);
         Task<UserPreferance> AddFavoriteAsync(UserPreferance favoriteModel);
         Task<UserPreferance> DeleteFavoriteAsync(int id); 
         Task<FavoriteDto> GetFavoriteByFavoriteIdAsync(int id);
