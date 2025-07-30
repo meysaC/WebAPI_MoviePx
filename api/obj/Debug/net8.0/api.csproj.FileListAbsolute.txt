@@ -296,3 +296,5 @@ C:\Users\black\Desktop\Toplu\GeriKalan\MoviePx_API\api\obj\Debug\net8.0\refint\a
 C:\Users\black\Desktop\Toplu\GeriKalan\MoviePx_API\api\obj\Debug\net8.0\api.pdb
 C:\Users\black\Desktop\Toplu\GeriKalan\MoviePx_API\api\obj\Debug\net8.0\api.genruntimeconfig.cache
 C:\Users\black\Desktop\Toplu\GeriKalan\MoviePx_API\api\obj\Debug\net8.0\ref\api.dll
+C:\Users\black\Desktop\Toplu\GeriKalan\MoviePx_API\api\bin\Debug\net8.0\AutoMapper.dll
+C:\Users\black\Desktop\Toplu\GeriKalan\MoviePx_API\api\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll

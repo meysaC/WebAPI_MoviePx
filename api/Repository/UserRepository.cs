@@ -1,8 +1,10 @@
 using api.Data;
+using api.Dtos.Movie;
 using api.Dtos.User;
 using api.Interfaces;
 using api.Mapper;
 using api.Models;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,13 +16,15 @@ namespace api.Repository
         //private readonly IOMDbService _omdbService;
         private readonly ITmdbService _tmdbService;
         private readonly UserManager<AppUser> _userManager;
+        private readonly IMapper _mapper;
 
-        public UserRepository(ApplicationDBContext context, ITmdbService tmdbService,  UserManager<AppUser> userManager)
+        public UserRepository(ApplicationDBContext context, ITmdbService tmdbService, UserManager<AppUser> userManager, IMapper mapper)
         {
             _context = context;
             //_omdbService = omdbService;
-            _tmdbService =tmdbService;
+            _tmdbService = tmdbService;
             _userManager = userManager;
+            _mapper = mapper;
         }
  
         public async Task<AppUser> GetUserAsync(string id)
@@ -30,72 +34,153 @@ namespace api.Repository
             return user;
         }
 
-        public async Task<UserPreferance> AddFavoriteAsync(UserPreferance favoriteModel)
-        {
-            await _context.UserPreferances.AddAsync(favoriteModel);
-            await _context.SaveChangesAsync();
-            return favoriteModel;
-        }
 
-        public async Task<UserPreferance> DeleteFavoriteAsync(int id)
+        public async Task<Result<FavoriteDto>> AddFavoriteAsync(UserFavorite favorite) //<UserPreferance>UserPreferance
         {
-            var accountModel = await _context.UserPreferances.FirstOrDefaultAsync(x => x.Id == id);
-            if(accountModel == null ) return null;
-            _context.Remove(accountModel);
-            await _context.SaveChangesAsync();
-            return accountModel;
-        }
+            // var existingFavorite = await _context.UserFavorites
+            //     .FirstOrDefaultAsync(f => f.AppUserId == favoriteModel.AppUserId && f.MovieId == favoriteModel.MovieId); 
+            // if (existingFavorite == null)
+            // {
+            //     //return existingFavorite;
+            //     await _context.UserFavorites.AddAsync(favoriteModel);
+            //     await _context.SaveChangesAsync();
+            // }
+            //return favoriteModel;
 
-        public async Task<List<FavoriteDto?>> GetAllFavoritesAsync(string id) 
+
+            var exists = await _context.UserFavorites
+                .AnyAsync(f => f.AppUserId == favorite.AppUserId && f.MovieId == favorite.MovieId);
+            if (exists) return Result<FavoriteDto>.FailResult("This movie is already in your favorites.");
+
+            favorite.CreatedAt = DateTime.UtcNow; // Set CreatedAt to current time
+            await _context.UserFavorites.AddAsync(favorite);
+            await _context.SaveChangesAsync();
+
+            var favoriteDto = _mapper.Map<FavoriteDto>(favorite);
+            return Result<FavoriteDto>.SuccessResult(favoriteDto);
+        }
+        public async Task<FavoriteDto?> GetFavoriteByFavoriteIdAsync(int favoriteId)
         {
-            var favorites = await _context.UserPreferances
-                                            .Include(a => a.AppUser)
-                                            .Where(a => a.AppUserId == id)
-                                            .ToListAsync();
-            if(favorites == null) return null;                                                        
-            var favoritesDto = favorites.Select(a => a.UserPreferanceToFavoriteDto()).ToList();
-            var movieIds = favorites.Select(a => a.MovieId).ToList();
-            
-            for (int i = 0; i < favoritesDto.Count; i++)
+            // var favorite = await _context.UserPreferances.FirstOrDefaultAsync(a => a.Id == id);
+            // if(favorite == null) return null;
+
+            // var favoriteDto = new FavoriteDto();
+            // favoriteDto = favorite.UserPreferanceToFavoriteDto();
+
+            // //var movie = await _omdbService.GetMovieByIdAsync(favorite.ImdbID);          
+            // var movie = await _tmdbService.GetMovieByIdAsync(favorite.MovieId);          
+            // {
+            //     //favoriteDto.Title = movie.Title;
+            //     // favoriteDto.Director = movie.Director;
+            //     // favoriteDto.imdbRating = movie.imdbRating;
+            // }
+            // return favoriteDto;
+
+            var favorite = await _context.UserFavorites
+                .FirstOrDefaultAsync(f => f.Id == favoriteId);
+            return favorite == null ? null : _mapper.Map<FavoriteDto>(favorite);
+        }
+        public async Task<Result<string>> DeleteFavoriteAsync(int favoriteId)
+        {
+            var favorite = await _context.UserFavorites.FirstOrDefaultAsync(x => x.Id == favoriteId);
+            if (favorite == null) return Result<string>.SuccessResult("Favori bulunamadı.");
+            _context.UserFavorites.Remove(favorite);
+            await _context.SaveChangesAsync();
+            return Result<string>.SuccessResult("Favori başarıyla silindi.");
+        }
+        public async Task<Result<List<FavoriteDto?>>> GetAllFavoritesAsync(string id)
+        {
+            // var favorites = await _context.UserPreferances
+            //                                 .Where(a => a.AppUserId == id)
+            //                                 .ToListAsync();
+            // if(favorites == null) return null;                                                        
+            // var favoritesDto = favorites.Select(a => a.UserPreferanceToFavoriteDto()).ToList();
+            // var movieIds = favorites.Select(a => a.MovieId).ToList();
+
+            // for (int i = 0; i < favoritesDto.Count; i++)
+            // {
+            //     var movie = await _tmdbService.GetMovieByIdAsync(movieIds[i]);
+            //     if (movie != null)
+            //     {
+            //         //favoritesDto[i].Movie = movie;
+            //     }
+            // }            
+            // return favoritesDto;
+
+            var favorites = await _context.UserFavorites
+                .Where(f => f.AppUserId == id)
+                .OrderByDescending(f => f.CreatedAt)
+                .ToListAsync();
+            if (favorites == null || !favorites.Any()) return Result<List<FavoriteDto?>>.FailResult("No favorites found.");
+            var favoriteDtos = _mapper.Map<List<FavoriteDto>>(favorites);
+
+            var movieTasks = favorites.Select(f => _tmdbService.GetMovieByIdAsync(f.MovieId)).ToList();
+            //TMDb verilerini aynı anda (paralel olarak) çekmek, Bütün istekler aynı anda başlar, CPU veya thread beklemez, .NET async IO ile tümünü aynı anda bekler
+            var movieResults = await Task.WhenAll(movieTasks);
+
+            for (int i = 0; i < favorites.Count; i++)
             {
-                //var movie = await _omdbService.GetMovieByIdAsync(movieMovieIds[i]);       
-                var movie = await _tmdbService.GetMovieByIdAsync(movieIds[i]);       
-                if (movie != null)
+                if (movieResults[i] != null)
                 {
-                    favoritesDto[i].Title = movie.Title;
-                    // favoritesDto[i].Director = movie.Director;
-                    // favoritesDto[i].imdbRating = movie.imdbRating;
+                    favoriteDtos[i].Movie = _mapper.Map<MovieDto>(movieResults[i]);
                 }
-            }            
-            return favoritesDto;
-        }
-
-        public async Task<FavoriteDto> GetFavoriteByFavoriteIdAsync(int id)
-        {
-            var favorite = await _context.UserPreferances.FirstOrDefaultAsync(a => a.Id == id);
-            if(favorite == null) return null;
-            
-            var favoriteDto = new FavoriteDto();
-            favoriteDto = favorite.UserPreferanceToFavoriteDto();
-
-            //var movie = await _omdbService.GetMovieByIdAsync(favorite.ImdbID);          
-            var movie = await _tmdbService.GetMovieByIdAsync(favorite.MovieId);          
-            {
-                favoriteDto.Title = movie.Title;
-                // favoriteDto.Director = movie.Director;
-                // favoriteDto.imdbRating = movie.imdbRating;
             }
-
-            return favoriteDto;
+            return Result<List<FavoriteDto?>>.SuccessResult(favoriteDtos);
         }
- 
+
+
+        public async Task<Result<WatchedDto>> AddWatchedAsync(UserWatched watched)
+        {
+            var exists = await _context.UserWatcheds
+                .AnyAsync(w => w.AppUserId == watched.AppUserId && w.MovieId == watched.MovieId);
+            if (exists) return Result<WatchedDto>.FailResult("This movie is already in your watched.");
+            watched.CreatedAt = DateTime.UtcNow;
+            await _context.UserWatcheds.AddAsync(watched);
+            await _context.SaveChangesAsync();
+            var watchedDto = _mapper.Map<WatchedDto>(watched);
+            return Result<WatchedDto>.SuccessResult(watchedDto); 
+        }
+        public async Task<WatchedDto?> GetWatchedByIdAsync(int watchedId)
+        {
+            var watched = await _context.UserWatcheds
+                .FirstOrDefaultAsync(w => w.Id == watchedId);
+            return watched == null ? null : _mapper.Map<WatchedDto>(watched);
+        }
+        public async Task<Result<string>> DeleteWatchedAsync(int id)
+        {
+            var watchedModel = await _context.UserWatcheds.FirstOrDefaultAsync(x => x.Id == id);
+            if (watchedModel == null) return Result<string>.SuccessResult("İzlenen film başarıyla silindi.");
+            _context.Remove(watchedModel);
+            await _context.SaveChangesAsync();
+            return Result<string>.SuccessResult("İzlenen film başarıyla silindi.");
+        }
+        public async Task<Result<List<WatchedDto?>>> GetAllWatchedAsync(string id)
+        {
+            var watcheds = await _context.UserWatcheds
+                .Where(w => w.AppUserId == id)
+                .OrderByDescending(w => w.CreatedAt)
+                .ToListAsync();
+            if (watcheds == null || !watcheds.Any()) return Result<List<WatchedDto?>>.FailResult("No watched movies found.");
+            var watchedDtos = _mapper.Map<List<WatchedDto?>>(watcheds);
+            var movieTasks = watcheds.Select(w => _tmdbService.GetMovieByIdAsync(w.MovieId)).ToList();
+            var movieResults = await Task.WhenAll(movieTasks);
+            for (int i = 0; i < watcheds.Count; i++)
+            {
+                if (movieResults[i] != null)
+                {
+                    watchedDtos[i].Movie = _mapper.Map<MovieDto>(movieResults[i]);
+                }
+            }
+            return Result<List<WatchedDto?>>.SuccessResult(watchedDtos);
+        }
+
+
         public async Task<UserFollow> FallowUserAsync(UserFollow followModel)
         {
             await _context.UserFollows.AddAsync(followModel);
             await _context.SaveChangesAsync();
             return followModel;
         }
-
         public async Task<FollowDto> GetFollowByFollowIdAsync(int id) //bu id kullanıcı id değil 
         {
             var follow = await _context.UserFollows.Include(a => a.AppUser).FirstOrDefaultAsync(a => a.Id == id);
@@ -114,7 +199,6 @@ namespace api.Repository
 
             return followDto;
         }
-
         public async Task<UserFollow> UnFollowAsync(string followUserName, string appUserId)
         { 
             var followUser = await _userManager.FindByNameAsync(followUserName);
@@ -126,7 +210,6 @@ namespace api.Repository
             await _context.SaveChangesAsync();
             return followModel;
         }
-
         public async Task<List<FollowDto?>> GetAllFollowsAsync(string id)
         {
             var follows = await _context.UserFollows
@@ -151,6 +234,7 @@ namespace api.Repository
 
             return followsDto;                                           
         }
+
 
         public string SinceTime(DateTime time)
         {
