@@ -29,9 +29,6 @@ namespace api.Models
         [JsonProperty("genres")]
        public List<Genre> Genres { get; set; }
 
-        [JsonProperty("backdrop_path")]
-        public string BackdropPath { get; set; }
-
         [JsonProperty("poster_path")]
         public string PosterPath { get; set; }
 

@@ -1,6 +1,7 @@
 using System.Text;
 using api.Data;
 using api.Interfaces;
+using api.Mapper;
 using api.Models;
 using api.Repository;
 using api.Service;
@@ -92,15 +93,22 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
  options.Password.RequiredLength = 12;
 }).AddEntityFrameworkStores<ApplicationDBContext>();
 
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
 //FRONTEND İLE UĞRAŞIRKEN JWT ISSUER/AUDİENCE https://localhost:5246 DEN 5188 EÇEVİRDİM!!!!!!!
-builder.Services.AddAuthentication(options => {
-   // options.DefaultAuthenticateScheme =  //kimlik doğrulama işlemi sırasında hangi şemanın kullanılacağını
-   // options.DefaultChallengeScheme =    //kullanıcı doğrulama gereksinimi olduğunda (kullanıcı kimliği doğrulanmamışsa) hangi kimlik doğrulama şemasının kullanılacağı
-   // options.DefaultForbidScheme =      //kullanıcının belirli bir kaynağa erişim izni olmadığı durumda hangi şemanın devreye gireceğini
-   // options.DefaultScheme =           //genel olarak hangi kimlik doğrulama şemasının kullanılacağına
-   // options.DefaultSignInScheme =    //kullanıcının giriş yaptıktan sonra hangi kimlik doğrulama şemasının kullanılacağını(genellikle cookie authentication kullanıldığında)
-   options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; //hem Google OAuth hem de JWT gibi birden fazla kimlik doğrulama yöntemi kullanıyorsanız, bu durumda şemaları doğru bir şekilde yönlendirebilmek için DefaultAuthenticateScheme ve DefaultChallengeScheme kullanmak önemlidir
-   options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+builder.Services.AddAuthentication(options =>
+{
+    // options.DefaultAuthenticateScheme =  //kimlik doğrulama işlemi sırasında hangi şemanın kullanılacağını
+    // options.DefaultChallengeScheme =    //kullanıcı doğrulama gereksinimi olduğunda (kullanıcı kimliği doğrulanmamışsa) hangi kimlik doğrulama şemasının kullanılacağı
+    // options.DefaultForbidScheme =      //kullanıcının belirli bir kaynağa erişim izni olmadığı durumda hangi şemanın devreye gireceğini
+    // options.DefaultScheme =           //genel olarak hangi kimlik doğrulama şemasının kullanılacağına
+    // options.DefaultSignInScheme =    //kullanıcının giriş yaptıktan sonra hangi kimlik doğrulama şemasının kullanılacağını(genellikle cookie authentication kullanıldığında)
+
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; //JWT ile authorize edeceğim için bu olmalı !!!!
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; //hem Google OAuth hem de JWT gibi birden fazla kimlik doğrulama yöntemi kullanıyorsanız, bu durumda şemaları doğru bir şekilde yönlendirebilmek için DefaultAuthenticateScheme ve DefaultChallengeScheme kullanmak önemlidir
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; //JWT ile authorize edeceğim için bu olmalı !!!!
+
+    //options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme; //chalange -> authorize doğrulama başarısza ne olacak -> ama ben jwtile authorize edeceğim için bu olmamalı !!!
 })
 .AddJwtBearer(options => {
    options.TokenValidationParameters = new TokenValidationParameters
@@ -213,8 +221,8 @@ app.UseCors(x => x
         .AllowCredentials() // Eğer frontend ve backend farklı domainlerde çalışıyorsa `AllowCredentials` ile birlikte `AllowAnyOrigin` kullanılamaz.
        //  .SetIsOriginAllowed(origin => true)
 );
-app.UseAuthorization();
 app.UseAuthentication();
+app.UseAuthorization();
 
 //frontendi bağlmaya çalışırken bunu kullandım??
 app.UseEndpoints(endpoints => {

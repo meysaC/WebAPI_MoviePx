@@ -13,9 +13,9 @@ namespace api.Mapper
         {
             return new FavoriteDto
             {
-                Id = preferance.Id,
-                Favorite = "Favorite", 
-                Title = "",            
+                // Id = preferance.Id,
+                // Favorite = "Favorite",
+                // Title = "",
                 // Director = "",         
                 // imdbRating = ""       
             };
@@ -29,6 +29,20 @@ namespace api.Mapper
             };
         }
         
+        public static UserPreferance ToUserPreferanceFromWatchedDto(this WatchedDto watchedDto)
+        {
+            return new UserPreferance
+            {
+                IsWatched = true,
+                CreatedAt = DateTime.Now
+            };
+        }
+        public static WatchedDto? UserPreferanceToWatchedDto(this UserPreferance preferance)
+        {
+            return new WatchedDto
+            {
+            };
+        }
         
         // public static List<FavoriteDto?> FavoritesDtoToFavoriteDto(this FavoritesDto favoriteDto) //Gereksiz!!!!!
         // {
