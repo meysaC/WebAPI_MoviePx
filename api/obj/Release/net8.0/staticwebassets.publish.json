@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "BMFLd2wvKWXT6Xk+2AchJawLQtPAMno9rlXnI+vl72A=",
+  "Source": "api",
+  "BasePath": "_content/api",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
