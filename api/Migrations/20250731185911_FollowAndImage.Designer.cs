@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using api.Data;
 
@@ -11,9 +12,11 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250731185911_FollowAndImage")]
+    partial class FollowAndImage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,13 +54,13 @@ namespace api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "5e8d6b16-4593-4c33-8fb6-7b8592a5903e",
+                            Id = "cc4c12d7-4879-40b3-808d-4df7a60d2719",
                             Name = "Admin",
                             NormalizedName = "ADMİN"
                         },
                         new
                         {
-                            Id = "4a873be4-74fa-4a05-923e-c1ad61065006",
+                            Id = "7f6e7df9-6edc-45b3-a89b-d058821cc320",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -344,12 +347,6 @@ namespace api.Migrations
                     b.Property<string>("FollowingId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("UnFollowedWhen")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 

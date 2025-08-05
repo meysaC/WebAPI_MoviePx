@@ -42,7 +42,18 @@ namespace api.Data
                     NormalizedName = "USER"
                 },
             };
-            builder.Entity<IdentityRole>().HasData(roles); 
+            builder.Entity<IdentityRole>().HasData(roles);
+
+            builder.Entity<UserFollow>()
+                .HasOne(f => f.Follower)
+                .WithMany(u => u.Followings)
+                .HasForeignKey(f => f.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict); //biri silinirse diğer veriler patlamasın
+            builder.Entity<UserFollow>()
+                .HasOne(f => f.Following)
+                .WithMany(u => u.Followers)
+                .HasForeignKey(f => f.FollowingId)
+                .OnDelete(DeleteBehavior.Restrict);
 
         }
     }

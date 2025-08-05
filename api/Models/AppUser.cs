@@ -11,5 +11,11 @@ namespace api.Models
         // public List<UserPreferance> UserPreferances { get; set; } = new List<UserPreferance>();
         // public List<Comment> Comments { get; set; } = new List<Comment>();
         // public List<UserRating> UserRatings { get; set; } = new List<UserRating>();
+        
+        public string? ProfileImageUrl { get; set; }
+        public string? BannerImageUrl { get; set; }
+
+        public ICollection<UserFollow> Followings { get; set; } //Takip ettiklerim
+        public ICollection<UserFollow> Followers { get; set; } // takip edenler
     }
 }

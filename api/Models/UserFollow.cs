@@ -10,9 +10,17 @@ namespace api.Models
     public class UserFollow
     {
         public int Id { get; set; }
-        public string AppUserId { get; set; } 
-        public AppUser AppUser { get; set; }
-        public string FollowingId { get; set; }
-        public DateTime FollowedWhen { get; set;} = DateTime.Now;
+
+        public string FollowerId { get; set; } //takip eden 
+        public AppUser Follower { get; set; }
+
+        public string FollowingId { get; set; } //takip edilen
+        public AppUser Following { get; set; }
+
+        public bool IsActive { get; set; } = true;
+
+        public DateTime FollowedWhen { get; set; } = DateTime.UtcNow;
+        public DateTime? UnFollowedWhen { get; set; } 
+        
     }
 }

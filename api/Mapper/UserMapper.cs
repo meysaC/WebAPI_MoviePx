@@ -54,23 +54,23 @@ namespace api.Mapper
         //     }).ToList();
         // }
 
-        public static UserFollow? ToUserFollowFromFollowDto(this FollowDto followDto)
-        {
-            return new UserFollow
-            {
-                Id = followDto.Id
-            };
-        }
-        public static FollowDto?  UserFollowToFollowDto(this UserFollow followModel)
-        {
-            return new FollowDto
-            {
-                Id = followModel.Id,
-                userName = followModel.AppUser.UserName,
-                FollowingUserName = "",
-                Since = ""
-            };
-        }
+        // public static UserFollow? ToUserFollowFromFollowDto(this FollowDto followDto)
+        // {
+        //     return new UserFollow
+        //     {
+        //         Id = followDto.Id
+        //     };
+        // }
+        // public static FollowDto?  UserFollowToFollowDto(this UserFollow followModel)
+        // {
+        //     return new FollowDto
+        //     {
+        //         Id = followModel.Id,
+        //         userName = followModel.AppUser.UserName,
+        //         FollowingUserName = "",
+        //         Since = ""
+        //     };
+        // }
 
 
     }

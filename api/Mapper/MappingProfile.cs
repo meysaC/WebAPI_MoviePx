@@ -43,6 +43,13 @@ namespace api.Mapper
             CreateMap<WatchedDto, UserWatched>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
                 .ForMember(dest => dest.AppUser, opt => opt.Ignore());
+
+
+            CreateMap<UserFollow, FollowDto>()
+                .ForMember(dest => dest.FollowerId, opt => opt.MapFrom(src => src.FollowerId))
+                .ForMember(dest => dest.FollowerUserName, opt => opt.MapFrom(src => src.Follower.UserName))
+                .ForMember(dest => dest.FollowingId, opt => opt.MapFrom(src => src.FollowingId))
+                .ForMember(dest => dest.FollowingUserName, opt => opt.MapFrom(src => src.Following.UserName));
         }
     }
 }

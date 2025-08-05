@@ -27,7 +27,7 @@ namespace api.Controllers
         public async Task<IActionResult> GetUser(string id)
         {
             var user = await _userRepo.GetUserAsync(id);
-           if (user == null) return NotFound("The user doesn't exist.");
+            if (user == null) return NotFound("The user doesn't exist.");
 
             return Ok(user);
         }
@@ -38,25 +38,25 @@ namespace api.Controllers
         [HttpGet("all_favorites/{userId}")]
         public async Task<IActionResult> GetAllFavorite([FromRoute] string userId)
         {
-            if(!ModelState.IsValid ) return BadRequest(ModelState);
-            
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             // user id yi aldğımız için gerek yok buna
             // var userName = User.GetUsername();
             // var appUser = await _userManager.FindByNameAsync(userName);
 
             var favorites = await _userRepo.GetAllFavoritesAsync(userId);
-            if(favorites == null) return NoContent();
+            if (favorites == null) return NoContent();
             return Ok(favorites); //MovieDto TİPİNDE DÖNDÜRÜYOR FRONTEND E !!!!!
         }
-        
+
         [HttpGet("favorite/{id:int}")]
         [Authorize]
-        public async Task<IActionResult> GetFavoriteByFavoriteId([FromRoute] int id )
+        public async Task<IActionResult> GetFavoriteByFavoriteId([FromRoute] int id)
         {
-            if(!ModelState.IsValid ) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var favorite = await _userRepo.GetFavoriteByFavoriteIdAsync(id);  
-            if(favorite == null) return NotFound("Doesn't exists.");
+            var favorite = await _userRepo.GetFavoriteByFavoriteIdAsync(id);
+            if (favorite == null) return NotFound("Doesn't exists.");
 
             return Ok(favorite);  //favorite.ToFavoriteDto()
         }
@@ -98,10 +98,10 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> DeleteFavorite([FromRoute] int id)
         {
-            if(!ModelState.IsValid ) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var favoriteModel = await _userRepo.DeleteFavoriteAsync(id);
-            if(favoriteModel == null) return NotFound("Not succsessfull request.");
+            if (favoriteModel == null) return NotFound("Not succsessfull request.");
 
             return NoContent();
         }
@@ -126,12 +126,12 @@ namespace api.Controllers
         }
         [HttpGet("watched/{id:int}")]
         [Authorize]
-        public async Task<IActionResult> GetWatchedByIdAsync([FromRoute] int id )
+        public async Task<IActionResult> GetWatchedByIdAsync([FromRoute] int id)
         {
-            if(!ModelState.IsValid ) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var watched = await _userRepo.GetWatchedByIdAsync(id);  
-            if(watched == null) return NotFound("Doesn't exists.");
+            var watched = await _userRepo.GetWatchedByIdAsync(id);
+            if (watched == null) return NotFound("Doesn't exists.");
 
             return Ok(watched);
         }
@@ -139,10 +139,10 @@ namespace api.Controllers
         [HttpGet("all_watched/{userId}")]
         public async Task<IActionResult> GetAllWatched([FromRoute] string userId)
         {
-            if(!ModelState.IsValid ) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             var watcheds = await _userRepo.GetAllWatchedAsync(userId);
-            if(watcheds == null) return NoContent();
-            return Ok(watcheds); 
+            if (watcheds == null) return NoContent();
+            return Ok(watcheds);
         }
         [HttpDelete("remove_watched/{id}")]
         [Authorize]
@@ -156,66 +156,66 @@ namespace api.Controllers
 
 
 
-        [HttpGet("follow/{id:int}")]
+        // [HttpGet("follow/{id:int}")]
+        // [Authorize]
+        // public async Task<IActionResult> GetFollowByFollowId([FromRoute] int id )
+        // {
+        //     if(!ModelState.IsValid ) return BadRequest(ModelState);
+
+        //     var favorite = await _userRepo.GetFollowByFollowIdAsync(id);  
+        //     if(favorite == null) return NotFound("Doesn't exists.");
+
+        //     return Ok(favorite);
+        //}
+
+        [HttpPost("follow/{followingId}")]
         [Authorize]
-        public async Task<IActionResult> GetFollowByFollowId([FromRoute] int id )
-        {
-            if(!ModelState.IsValid ) return BadRequest(ModelState);
-
-            var favorite = await _userRepo.GetFollowByFollowIdAsync(id);  
-            if(favorite == null) return NotFound("Doesn't exists.");
-
-            return Ok(favorite);
-        }
-
-        [HttpGet("followings")]
-        public async Task<IActionResult> GetAllFollowing() 
-        {
-            if(!ModelState.IsValid ) return BadRequest(ModelState);
-
-            var userName = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(userName);
-
-            var follows = await _userRepo.GetAllFollowsAsync(appUser.Id);  
-            if(follows == null) return NoContent();
-            return Ok(follows); 
-        }
-
-        [HttpPost("follow/{username}")]
-        [Authorize]
-        public async Task<IActionResult> Follow([FromRoute] string username)
+        public async Task<IActionResult> Follow([FromRoute] string followingId) 
         {
             var userName = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(userName);
-            var followUser = await _userManager.FindByNameAsync(username);
+            if (appUser == null) return Unauthorized();
 
+            var followingUser = await _userManager.FindByIdAsync(followingId);
+            if (followingUser == null) return NotFound("The follower does not exist.");
 
-            var followDto = new FollowDto();
-            var followModel = followDto.ToUserFollowFromFollowDto();
-            followModel.AppUserId = appUser.Id;
-            followModel.FollowingId = followUser.Id;
+            var follow = await _userRepo.FallowUserAsync(appUser.Id, followingId);
 
-            await _userRepo.FallowUserAsync(followModel);
-
-            followDto = await _userRepo.GetFollowByFollowIdAsync(followModel.Id);
-
-            return CreatedAtAction(nameof(GetFollowByFollowId), new { id = followModel.Id}, followDto); //,   favoriteModel.ToFavoriteDto()            
+            return Ok(new
+            {
+                followId = follow.Id,
+                isFollowing = follow.IsActive,
+                FollowedWhen = follow.FollowedWhen,
+                UnFollowedWhen = follow.UnFollowedWhen
+            });
         }
-
-        [HttpDelete("unfollow/{username}")]
-        [Authorize]
-        public async Task<IActionResult> UnFollow([FromRoute] string username)
+        [HttpGet("followings/{userId}")] //
+        public async Task<IActionResult> GetAllFollowings([FromRoute] string userId)
         {
-            if(!ModelState.IsValid ) return BadRequest(ModelState);
-
-            var userName = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(userName);
-
-            var followModel = await _userRepo.UnFollowAsync(username, appUser.Id);
-            if(followModel == null) return NotFound("Not succsessfull request.");
-
-            return NoContent();
+            var followings = await _userRepo.GetUserFollowingsAsync(userId);
+            return Ok(followings);
+        }   
+        [HttpGet("followers/{userId}")]
+        public async Task<IActionResult> GetAllFollowers([FromRoute] string userId) 
+        {
+            var followers = await _userRepo.GetUserFollowersAsync(userId);
+            return Ok(followers);
         }
+
+        // [HttpDelete("unfollow/{username}")]
+        // [Authorize]
+        // public async Task<IActionResult> UnFollow([FromRoute] string username)
+        // {
+        //     if(!ModelState.IsValid ) return BadRequest(ModelState);
+
+        //     var userName = User.GetUsername();
+        //     var appUser = await _userManager.FindByNameAsync(userName);
+
+        //     var followModel = await _userRepo.UnFollowAsync(username, appUser.Id);
+        //     if(followModel == null) return NotFound("Not succsessfull request.");
+
+        //     return NoContent();
+        // }
 
     }
 }
