@@ -1,0 +1,36 @@
+# ---- Dotnet ----
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+
+# Visual Studio
+.vs/
+
+# Rider
+.idea/
+
+# VS Code (opsiyonel)
+.vscode/
+
+# Nuxt / Node.js
+node_modules/
+.nuxt/
+.output/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test outputs
+TestResults/
+*.coverage
+*.coveragexml
