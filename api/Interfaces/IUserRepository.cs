@@ -22,10 +22,12 @@ namespace api.Interfaces
         Task<Result<string>> DeleteWatchedAsync(int id); //<UserWatched>
         Task<Result<List<WatchedDto?>>> GetAllWatchedAsync(string id);
 
-        Task<FollowDto> GetFollowByFollowIdAsync(int id);
-        Task<UserFollow> FallowUserAsync(UserFollow followModel);
-        Task<UserFollow> UnFollowAsync(string followUserName, string appUserId); 
-        Task<List<FollowDto?>> GetAllFollowsAsync(string id); 
+        // Task<FollowDto> GetFollowByFollowIdAsync(int id);
+        Task<UserFollow> FallowUserAsync(string followerId, string followingId);
+        Task<IEnumerable<FollowDto>> GetUserFollowingsAsync(string userId); //
+        Task<IEnumerable<FollowDto>> GetUserFollowersAsync(string userId);
+        // Task<UserFollow> UnFollowAsync(string followUserName, string appUserId); 
+        // Task<List<FollowDto?>> GetAllFollowsAsync(string id); 
 
         string SinceTime (DateTime time );
     }
