@@ -1,5 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using api.Dtos.User;
+using api.Dtos.User.Favorite;
+using api.Dtos.User.Watched;
 using api.Extensions;
 using api.Interfaces;
 using api.Mapper;
@@ -10,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
-    [Route("api/user")]
+    [Route("api/users")] //Kaynak adı çoğul olmalı
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -23,20 +25,19 @@ namespace api.Controllers
             _userRepo = userRepo;
         }
 
-        [HttpGet("get_user")]
-        public async Task<IActionResult> GetUser(string id)
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUser([FromRoute] string userId)
         {
-            var user = await _userRepo.GetUserAsync(id);
+            var user = await _userRepo.GetUserAsync(userId);
             if (user == null) return NotFound("The user doesn't exist.");
-
             return Ok(user);
         }
 
 
 
         //[AllowAnonymous] //kimlik doğrulama gerekmiyor
-        [HttpGet("all_favorites/{userId}")]
-        public async Task<IActionResult> GetAllFavorite([FromRoute] string userId)
+        [HttpGet("{userId}/favorites")] //all_favorites/
+        public async Task<IActionResult> GetAllFavorite([FromRoute] string userId) //[FromQuery] string title, [FromBody] FavoriteQueryObject queryObject
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -49,7 +50,35 @@ namespace api.Controllers
             return Ok(favorites); //MovieDto TİPİNDE DÖNDÜRÜYOR FRONTEND E !!!!!
         }
 
-        [HttpGet("favorite/{id:int}")]
+        [HttpPost("favorites")] //add_favorite/{MovieId}
+        [Authorize]
+        public async Task<IActionResult> CreateFavorite([FromBody] CreateFavoriteDto favoriteDto) //[FromRoute] int MovieId
+        {
+            var userName = User.GetUsername();
+            var appUser = await _userManager.FindByNameAsync(userName);
+
+            /* AutoMapper öncesi
+            // var favoriteDto = new FavoriteDto();            
+            // var favoriteModel = favoriteDto.ToUserPreferanceFromFavoriteDto();
+            // favoriteModel.MovieId = MovieId;
+            // favoriteModel.AppUserId = appUser.Id;
+            // await _userRepo.AddFavoriteAsync(favoriteModel);
+            // favoriteDto =  await _userRepo.GetFavoriteByFavoriteIdAsync(favoriteModel.Id);
+            // //return Ok(); //result.UserPreferanceToFavoriteDto() //Bu, UI'da kullanılabilirliği artırır. Ayrıca 201 Created yerine genelde 200 OK ile basit bir cevap UI için yeterlidir (özellikle sayfaya redirect etmiyorsan).
+            // return CreatedAtAction(nameof(GetFavoriteByFavoriteId), new { id = favoriteModel.Id}, favoriteDto); //,   favoriteModel.ToFavoriteDto()            
+            */
+
+            var favoriteModel = new UserFavorite
+            {
+                MovieId = favoriteDto.MovieId,
+                AppUserId = appUser.Id
+            };
+            var result = await _userRepo.AddFavoriteAsync(favoriteModel);
+            if (!result.Success) return BadRequest(result.Error);
+            return CreatedAtAction(nameof(GetFavoriteByFavoriteId), new { id = result.Data.Id }, result.Data);
+        }
+
+        [HttpGet("favorites/{id:int}")]
         [Authorize]
         public async Task<IActionResult> GetFavoriteByFavoriteId([FromRoute] int id)
         {
@@ -61,40 +90,7 @@ namespace api.Controllers
             return Ok(favorite);  //favorite.ToFavoriteDto()
         }
 
-        [HttpPost("add_favorite/{MovieId}")] //ImdbID
-        //[Route("{ImdbID}")]
-        [Authorize]
-        public async Task<IActionResult> CreateFavorite([FromRoute] int MovieId) //[FromQuery] string title, [FromBody] FavoriteQueryObject queryObject
-        {
-            var userName = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(userName);
-
-            // var favoriteDto = new FavoriteDto();            
-
-            // var favoriteModel = favoriteDto.ToUserPreferanceFromFavoriteDto();
-            // favoriteModel.MovieId = MovieId;
-            // favoriteModel.AppUserId = appUser.Id;
-
-            // await _userRepo.AddFavoriteAsync(favoriteModel);
-
-            // favoriteDto =  await _userRepo.GetFavoriteByFavoriteIdAsync(favoriteModel.Id);
-
-            // //return Ok(); //result.UserPreferanceToFavoriteDto() //Bu, UI'da kullanılabilirliği artırır. Ayrıca 201 Created yerine genelde 200 OK ile basit bir cevap UI için yeterlidir (özellikle sayfaya redirect etmiyorsan).
-            // return CreatedAtAction(nameof(GetFavoriteByFavoriteId), new { id = favoriteModel.Id}, favoriteDto); //,   favoriteModel.ToFavoriteDto()            
-
-
-
-            var favoriteModel = new UserFavorite
-            {
-                MovieId = MovieId,
-                AppUserId = appUser.Id
-            };
-            var result = await _userRepo.AddFavoriteAsync(favoriteModel);
-            if (!result.Success) return BadRequest(result.Error);
-            return CreatedAtAction(nameof(GetFavoriteByFavoriteId), new { id = result.Data.Id }, result.Data);
-        }
-
-        [HttpDelete("remove_favorite/{id}")]
+        [HttpDelete("favorites/{id:int}")] //remove_favorite
         [Authorize]
         public async Task<IActionResult> DeleteFavorite([FromRoute] int id)
         {
@@ -108,15 +104,24 @@ namespace api.Controllers
 
 
 
-        [HttpPost("add_watched/{MovieId}")]
+        [HttpGet("{userId}/watcheds")]
+        public async Task<IActionResult> GetAllWatched([FromRoute] string userId)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var watcheds = await _userRepo.GetAllWatchedAsync(userId);
+            if (watcheds == null) return NoContent();
+            return Ok(watcheds);
+        }
+
+        [HttpPost("watcheds")]
         [Authorize]
-        public async Task<IActionResult> AddWatched([FromRoute] int MovieId)
+        public async Task<IActionResult> AddWatched([FromBody] CreateWatchedDto watchedDto)
         {
             var userName = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(userName);
             var watchedModel = new UserWatched
             {
-                MovieId = MovieId,
+                MovieId = watchedDto.MovieId,
                 AppUserId = appUser.Id
             };
             var result = await _userRepo.AddWatchedAsync(watchedModel);
@@ -124,7 +129,7 @@ namespace api.Controllers
             return CreatedAtAction(nameof(GetWatchedByIdAsync), new { id = result.Data.Id }, result.Data);
 
         }
-        [HttpGet("watched/{id:int}")]
+        [HttpGet("watcheds/{id:int}")]
         [Authorize]
         public async Task<IActionResult> GetWatchedByIdAsync([FromRoute] int id)
         {
@@ -136,15 +141,7 @@ namespace api.Controllers
             return Ok(watched);
         }
 
-        [HttpGet("all_watched/{userId}")]
-        public async Task<IActionResult> GetAllWatched([FromRoute] string userId)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            var watcheds = await _userRepo.GetAllWatchedAsync(userId);
-            if (watcheds == null) return NoContent();
-            return Ok(watcheds);
-        }
-        [HttpDelete("remove_watched/{id}")]
+        [HttpDelete("watcheds/{id:int}")]
         [Authorize]
         public async Task<IActionResult> DeleteWatched([FromRoute] int id)
         {
@@ -168,18 +165,18 @@ namespace api.Controllers
         //     return Ok(favorite);
         //}
 
-        [HttpPost("follow/{followingId}")]
+        [HttpPost("{followingUserId}/follows")]
         [Authorize]
-        public async Task<IActionResult> Follow([FromRoute] string followingId) 
+        public async Task<IActionResult> Follow([FromRoute] string followingUserId) 
         {
             var userName = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(userName);
             if (appUser == null) return Unauthorized();
 
-            var followingUser = await _userManager.FindByIdAsync(followingId);
+            var followingUser = await _userManager.FindByIdAsync(followingUserId);
             if (followingUser == null) return NotFound("The follower does not exist.");
 
-            var follow = await _userRepo.FallowUserAsync(appUser.Id, followingId);
+            var follow = await _userRepo.FallowUserAsync(appUser.Id, followingUserId);
 
             return Ok(new
             {
@@ -189,13 +186,13 @@ namespace api.Controllers
                 UnFollowedWhen = follow.UnFollowedWhen
             });
         }
-        [HttpGet("followings/{userId}")] //
+        [HttpGet("{userId}/followings")]
         public async Task<IActionResult> GetAllFollowings([FromRoute] string userId)
         {
             var followings = await _userRepo.GetUserFollowingsAsync(userId);
             return Ok(followings);
         }   
-        [HttpGet("followers/{userId}")]
+        [HttpGet("{userId}/followers")]
         public async Task<IActionResult> GetAllFollowers([FromRoute] string userId) 
         {
             var followers = await _userRepo.GetUserFollowersAsync(userId);

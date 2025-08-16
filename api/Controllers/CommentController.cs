@@ -16,7 +16,7 @@ using api.Service;
 
 namespace api.Controllers
 {
-    [Route("api/comment")]
+    [Route("api/comments")]
     [ApiController]
     public class CommentController : ControllerBase
     {

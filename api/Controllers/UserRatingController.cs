@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
-    [Route("api/UserRating")]
+    [Route("api/UserRatings")]
     [ApiController]
     public class UserRatingController : ControllerBase
     {

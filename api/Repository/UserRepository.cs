@@ -28,9 +28,9 @@ namespace api.Repository
             _mapper = mapper;
         }
  
-        public async Task<AppUser> GetUserAsync(string id)
+        public async Task<AppUser> GetUserAsync(string userId)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.FindByIdAsync(userId);
             if(user == null) return null;
             return user;
         }
@@ -219,60 +219,6 @@ namespace api.Repository
                     .ProjectTo<FollowDto>(_mapper.ConfigurationProvider) 
                     .ToListAsync();
         }
-
-        // public async Task<FollowDto> GetFollowByFollowIdAsync(int id) //bu id kullanıcı id değil 
-        // {
-        //     var follow = await _context.UserFollows.Include(a => a.AppUser).FirstOrDefaultAsync(a => a.Id == id);
-        //     if(follow == null) return null;
-
-        //     var followDto = new FollowDto();
-        //     followDto = follow.UserFollowToFollowDto();
-        //     // {
-        //     //     var years = (int)(timeSpan.TotalDays / 365);
-        //     //     followDto.Since = $"{years} yıl önce.";
-        //     // }
-
-        //     var followingUser = await _userManager.FindByIdAsync(follow.FollowingId);
-        //     followDto.FollowingUserName = followingUser.UserName;
-        //     followDto.Since = SinceTime(follow.FollowedWhen);
-
-        //     return followDto;
-        // }
-        // public async Task<UserFollow> UnFollowAsync(string followUserName, string appUserId)
-        // { 
-        //     var followUser = await _userManager.FindByNameAsync(followUserName);
-        //     var followModel = await _context.UserFollows
-        //                                 .Where(a => a.AppUserId == appUserId && a.FollowingId == followUser.Id)
-        //                                 .FirstOrDefaultAsync();;
-        //     if(followModel == null ) return null;
-        //     _context.Remove(followModel);
-        //     await _context.SaveChangesAsync();
-        //     return followModel;
-        // }
-        // public async Task<List<FollowDto?>> GetAllFollowsAsync(string id)
-        // {
-        //     var follows = await _context.UserFollows
-        //                                     .Include(a => a.AppUser)
-        //                                     .Where(a => a.AppUserId == id)
-        //                                     .ToListAsync();
-        //     if(follows == null) return null;
-
-        //     var followsDto = new List<FollowDto?>();
-        //     followsDto = follows.Select(a => a.UserFollowToFollowDto()).ToList();
-            
-        //     var followingUserIds = follows.Select(a => a.FollowingId).ToList();
-        //     var _followedWhens = follows.Select(a => a.FollowedWhen).ToList();
-           
-        //     for(int i = 0; i < followsDto.Count; i++)
-        //     {
-        //         var curFollow = await _context.Users.FirstOrDefaultAsync(a => a.Id == followingUserIds[i]);
-
-        //         followsDto[i].FollowingUserName = curFollow.UserName; 
-        //         followsDto[i].Since = SinceTime(_followedWhens[i]);
-        //     }
-
-        //     return followsDto;                                           
-        // }
 
 
         public string SinceTime(DateTime time)
