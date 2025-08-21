@@ -34,3 +34,6 @@ yarn-error.log*
 TestResults/
 *.coverage
 *.coveragexml
+
+# App settings (never commit)
+appsettings.json
