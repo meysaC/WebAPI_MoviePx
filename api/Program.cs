@@ -1,17 +1,20 @@
 using System.Text;
 using api.Data;
 using api.Interfaces;
+using api.Jobs;
 using api.Mapper;
 using api.Models;
 using api.Repository;
 using api.Service;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
+using Npgsql;
+using OpenAI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -193,8 +196,26 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRedisCacheService, RedisCacheService>(); //AddSingleton
 builder.Services.AddScoped<IUserRatingRepository, UserRatingRepository>(); 
 
-builder.Services.AddScoped<IOAuthService, OAuthService>(); 
+builder.Services.AddScoped<IOAuthService, OAuthService>();
 builder.Services.AddHttpClient<IOAuthService, OAuthService>();
+
+/* OpenAI !!!!*/
+//builder.Services.AddSingleton(builder.Configuration["OpenAI:ApiKey"]); //!!!!! BU ŞEKİLDE sadece bir string (API key) singleton olarak ekler. 
+// !!!!!!!!!!!!!!! --> o yüzden bunu kullanacağın yerde örneğin constructor içinde _openAiClient = new OpenAIClient(configuration["OpenAI:ApiKey"]); yazmalısın.
+// builder.Services.AddSingleton(x =>
+// {
+//     var apiKey = builder.Configuration["OpenAI:ApiKey"];
+//     return new OpenAIClient(apiKey);
+// });
+//dotnet add package OpenAI.Net    dotnet add package Betalgo.OpenAI
+builder.Services.AddOpenAIService(options =>
+{
+    options.ApiKey = builder.Configuration["OpenAI:ApiKey"];
+});
+builder.Services.AddSingleton<IEmbeddingService, EmbeddingService>();
+builder.Services.AddSingleton<VectorDbService>();
+builder.Services.AddTransient<EmbeddingSyncJob>(); //scoped da olur ama genelde job lar transient olarak eklenir
+NpgsqlConnection.GlobalTypeMapper.UseVector();
 
 var app = builder.Build();
 
